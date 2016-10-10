@@ -1,0 +1,11 @@
+{
+  "extends": "eslint-config-airbnb",
+  "rules":{
+      "no-console": 0,
+      "no-shadow": ["error", { "allow": ["callback", "cb","error","err"] }],
+      "prefer-template": ["warn"],
+      "new-cap": ["error", { "capIsNewExceptions": ["Router"] }],
+      "no-underscore-dangle": ["error", { "allow": ["_id"] }],
+      "linebreak-style": ["error", "windows"],
+  }
+}
