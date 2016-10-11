@@ -130,14 +130,31 @@ function threadBotRemove() {
 // Ask Function
 //--------------------------------------------------------------------------------------------
 function demarrer() {
-  const demqr1 = new fb.QuickReply({ title: `J'organise`, payload: 'ORGAN_EVENEMENT', image_url: 'https://call2text.me/images/new_event.png' });
-  // const qr2 = new fb.QuickReply({ title: 'MODIFIER', payload: 'MODIF_EVENEMENT'});
-  const demqr2 = new fb.QuickReply({ title: 'Je participe', payload: 'PARTI_EVENEMENT', image_url: 'https://call2text.me/images/join_event.png' });
-  const demqrs = new fb.QuickReplies([demqr1, demqr2]);
-  messenger.send(Object.assign(
-      { text: 'Souhaitez-vous ORGANISER ou PARTICIPER à un évènement ?' },
-      demqrs
-    ));
+  messenger.send(
+    new fb.GenericTemplate([
+      new fb.Element({
+        title: 'Organiser un évènement',
+        // item_url: 'https://call2text.me/images/new_event.png',
+        image_url: 'https://call2text.me/images/square/new_event.png',
+        subtitle: "Si vous organisez ou avez les droits d'administration d'un évènement",
+      }),
+      new fb.Element({
+        title: 'Participer à un évènement',
+        // item_url: 'https://call2text.me/images/edit_event.png',
+        image_url: 'https://call2text.me/images/square/join_event.png',
+        subtitle: "Si Vous êtes invités à participer à un évènement",
+      }),
+    ])
+  ).then((res) => {
+    const demqr1 = new fb.QuickReply({ title: `J'organise`, payload: 'ORGAN_EVENEMENT', image_url: 'https://call2text.me/images/circle/new_event.png' });
+    // const qr2 = new fb.QuickReply({ title: 'MODIFIER', payload: 'MODIF_EVENEMENT'});
+    const demqr2 = new fb.QuickReply({ title: 'Je participe', payload: 'PARTI_EVENEMENT', image_url: 'https://call2text.me/images/circle/join_event.png' });
+    const demqrs = new fb.QuickReplies([demqr1, demqr2]);
+    messenger.send(Object.assign(
+        { text: 'Faites votre choix:' },
+        demqrs
+      )).then((res) => { console.log('QuickReply: ', res); });
+  });
 }
 
 //--------------------------------------------------------------------------------------------
@@ -159,9 +176,10 @@ function mobileRequest(senderId) {
 }
 
 function confirmMobileNumber(mobileNumber) {
-  const conqr1 = new fb.QuickReply({ title: 'Oui', payload: `CONF_MOBILE#${phoneUtil.format(mobileNumber, PNF.E164)}` });
-  const conqr2 = new fb.QuickReply({ title: 'Non', payload: 'MOBILE_REQUEST' });
+  const conqr1 = new fb.QuickReply({ title: 'Oui', payload: `CONF_MOBILE#${phoneUtil.format(mobileNumber, PNF.E164)}`, image_url: 'https://call2text.me/images/circle/yes.png' });
+  const conqr2 = new fb.QuickReply({ title: 'Non', payload: 'MOBILE_REQUEST', image_url: 'https://call2text.me/images/circle/no.png' });
   const conqrs = new fb.QuickReplies([conqr1, conqr2]);
+  console.log(conqrs);
   messenger.send(Object.assign(
       { text: `Votre numéro de mobile est bien le ${phoneUtil.format(mobileNumber, PNF.NATIONAL)}` },
       conqrs
@@ -332,19 +350,19 @@ function choiceOrganis() {
       new fb.Element({
         title: 'Creer évènement',
         // item_url: 'https://call2text.me/images/new_event.png',
-        image_url: 'https://call2text.me/images/add_event.png',
+        image_url: 'https://call2text.me/images/square/add_event.png',
         subtitle: "Créez votre nouvelle évènement et centralisez les photos, vidéos et commentaires de vos évènements",
       }),
       new fb.Element({
         title: 'Modifier évènement',
         // item_url: 'https://call2text.me/images/edit_event.png',
-        image_url: 'https://call2text.me/images/edit_event.png',
+        image_url: 'https://call2text.me/images/square/edit_event.png',
         subtitle: "Modification d'un évènement déjà créé dont vous êtes l'administrateur.",
       }),
     ])
   ).then((res) => {
-    const eventqr1 = new fb.QuickReply({ title: 'Créer évènement', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/add_event.png' });
-    const eventqr2 = new fb.QuickReply({ title: 'Modifier évènement', payload: 'EDIT_EVENT', image_url: 'https://call2text.me/images/edit_event.png' });
+    const eventqr1 = new fb.QuickReply({ title: 'Créer évènement', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/add_event.png' });
+    const eventqr2 = new fb.QuickReply({ title: 'Modifier évènement', payload: 'EDIT_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
     const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
     console.log(eventqrs);
     messenger.send(Object.assign(
