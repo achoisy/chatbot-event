@@ -379,42 +379,41 @@ function actionCall(actionPayload, message) {
   const senderId = message.sender.id;
   return new Promise((resolve, reject) => {
     console.log(`actionCall payload: ${actionPayload}`);
-    switch (actionPayload) {
-      case 'PARTI_EVENEMENT': { // Join event as a guest
+
+    const actions = {
+      PARTI_EVENEMENT: () => { // Join event as a guest
         userMobileCheck(message, () => {
           console.log('Entering event as a guest' + message);
         });
-        break;
-      }
-      case 'ORGAN_EVENEMENT': { // Join event as a host
+      },
+      ORGAN_EVENEMENT: () => {
         userMobileCheck(message, () => {
           console.log('Entering event as a Host' + message.sender.id);
           choiceOrganis();
         });
-        break;
-      }
-      case 'CONF_MOBILE': { // Add Mobile number to user profile
+      },
+      CONF_MOBILE: () => {
         addMobileToUser(message, userMobileCheck);
-        break;
-      }
-      case 'MOBILE_REQUEST': { // Ask for mobile number
+      },
+      MOBILE_REQUEST: () => {
         mobileRequest(senderId);
-        break;
-      }
-      case 'CHECK_SMS_OUI': { // User have to type smscode again
+      },
+      CHECK_SMS_OUI: () => {
         messenger.send({ text: 'Retapez le code invitation reçu par SMS' })
         .catch((err) => {
           console.error(`Erreur smsCodeSend! ${err}`);
         });
-        break;
-      }
-      case 'CHECK_SMS_NON': { // Ask for new phone number
+      },
+      CHECK_SMS_NON: () => {
         mobileRequest(senderId);
-        break;
+      },
+      DEFAULT: () => {
+        console.log("Error!!!");
       }
-      default:
-      console.log("Error!!!");
-    }
+    };
+
+    // Run actions check. if any then run default action
+    (actions[actionPayload] || actions.DEFAULT)();
   });
 }
 //------------------------------------------------------------------------------------------------
