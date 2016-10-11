@@ -127,7 +127,7 @@ function threadBotRemove() {
 }
 
 //--------------------------------------------------------------------------------------------
-// Ask Function
+// General Function
 //--------------------------------------------------------------------------------------------
 function demarrer() {
   messenger.send(
@@ -155,6 +155,21 @@ function demarrer() {
         demqrs
       )).then((res) => { console.log('QuickReply: ', res); });
   });
+}
+
+function setNextPayload(senderId, nextPayload) {
+  User.findOneAndUpdate({ senderid: senderId },
+    { $set: { next_payload: nextPayload } },
+    (err, userObj) => {
+      if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+      if (userObj) { // User exist
+        console.log(`Set next payload on user profil: ${payload} `);
+        return true;
+      } else {  // User n'existe pas
+        return false;
+      }
+    });
 }
 
 //--------------------------------------------------------------------------------------------
@@ -407,8 +422,18 @@ function actionCall(actionPayload, message) {
       CHECK_SMS_NON: () => {
         mobileRequest(senderId);
       },
+      NEW_EVENT: () => {
+        userMobileCheck(message, () => {
+
+        });
+      },
+      EDIT_EVENT: () => {
+        userMobileCheck(message, () => {
+
+        });
+      },
       DEFAULT: () => {
-        console.log("Error!!!");
+        console.log("Action Call DEFAULT!!!");
       }
     };
 
