@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const fb = require('fbmessenger');
 const mongoose = require('mongoose');
 const User = require('./models/users'); // Model for mongoose schema validation USERS
+const Event = require('./models/events');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const speakeasy = require('speakeasy'); // Two factor authentication
 const path = require('path');
@@ -411,6 +412,28 @@ function choiceOrganis() {
   });
 }
 
+function choiceAddEventMessage () {
+  const addEventqr1 = new fb.QuickReply({
+    title: 'Ajouter',
+    payload: 'ADD_EVENT',
+    image_url: 'https://call2text.me/images/circle/add_event.png',
+  });
+  const addEventqr2 = new fb.QuickReply({
+    title: 'Terminer',
+    payload: 'RECAP_EVENT',
+    image_url: 'https://call2text.me/images/circle/validate.png',
+  });
+  const addEventqr = new fb.QuickReplies([addEventqr1, addEventqr2]);
+  messenger.send(Object.assign(
+    { text: 'Vous pouvez ajouter un message de bienvenu: text, image, photo et video' },
+    addEventqr
+  )).then((res) => {
+    console.log('Debug: ', JSON.stringify(res));
+  }).catch((err) => {
+    console.log('Error choiceAddEventMessage', err);
+  });
+}
+
 function createNewEvent(message, callback) {
   const senderId = message.sender.id;
   User.findOne({ senderid: senderId }, (err, userObj) => {
@@ -455,7 +478,7 @@ function createNewEvent(message, callback) {
               });
             });
           } else {
-            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
+            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 09H30' })
             .then((res) => {
               console.log('Debug: ', res);
             })
@@ -479,6 +502,47 @@ function createNewEvent(message, callback) {
               console.error(`Erreur updateContext ! ${err}`);
             });
           }
+        } else if (!context.event_info.location) {
+          if ('attachments' in message.message) {
+            const attach = message.message.attachments;
+            if ('type'in attach[0] && attach[0].type === 'location') {
+              context.event_info.location = attach[0].payload.coordinates;
+              updateContext(senderId, context, () => {
+                choiceAddEventMessage();
+              });
+            } else {
+              location('Ou se déroule votre évènement ?');
+            }
+          } else {
+            location('Ou se déroule votre évènement ?');
+          }
+        } else if ('quick_reply' in message.message) {
+          // DO NOTHING !!! :)
+        } else {
+          if ('text' in message.message) {
+            context.welcome_msg.texte = message.message.text;
+          }
+          if ('attachments' in message.message) {
+            switch (message.message.attachments[0].type) {
+              case 'image':
+                context.welcome_msg.photo = message.message.attachments[0].payload.url;
+                break;
+              case 'audio':
+                context.welcome_msg.audio = message.message.attachments[0].payload.url;
+                break;
+              case 'video':
+                context.welcome_msg.video = message.message.attachments[0].payload.url;
+                break;
+              default:
+                messenger.send({ text: 'Fichier joint non compatible...' });
+            }
+          }
+
+          updateContext(senderId, context, () => {
+            messenger.send({ text: 'Bien reçu...' }).then((res) => {
+              choiceAddEventMessage();
+            });
+          });
         }
       } else {
         context.event_info = {
@@ -494,6 +558,8 @@ function createNewEvent(message, callback) {
           texte: '',
           audio: '',
         };
+        context.validate = false;
+
         console.log(`Updateing context: ${JSON.stringify(context)}`);
         updateContext(senderId, context, () => {
           messenger.send({ text: 'Quel est le nom de votre évènement ?' });
@@ -501,6 +567,104 @@ function createNewEvent(message, callback) {
       }
     } else {
       throw Error(`Error in findOne userObj sender ID: ${senderId}`);
+    }
+  });
+}
+
+function recapEvent(message, callback) {
+  const senderId = message.sender.id;
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+    if ('context' in userObj) {
+      const context = userObj.context;
+
+      let buttonsArray = [];
+      if (userObj.context.welcome_msg.video !== '') {
+        buttonsArray.push(
+          new fb.Button({
+            type: 'web_url',
+            title: 'Message video',
+            url: userObj.context.welcome_msg.video,
+          })
+        );
+      }
+      if (userObj.context.welcome_msg.audio !== '') {
+        buttonsArray.push(
+          new fb.Button({
+            type: 'web_url',
+            title: 'Message audio',
+            url: userObj.context.welcome_msg.audio,
+          })
+        );
+      }
+
+      messenger.send(
+        new fb.GenericTemplate([
+          new fb.Element({
+            title: context.event_info.name,
+            item_url: context.welcome_msg.photo,
+            image_url: context.welcome_msg.photo,
+            subtitle: context.welcome_msg.texte,
+          }),
+          new fb.Element({
+            title: 'Description:',
+            subtitle: context.welcome_msg.description,
+            buttons: buttonsArray,
+          }),
+        ])
+      ).then((res) => {
+        const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: 'https://call2text.me/images/circle/validate.png' });
+        const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
+        const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
+        console.log(eventqrs);
+        messenger.send(Object.assign(
+            { text: 'Faites votre choix:' },
+            eventqrs
+          )).then((res) => { console.log('QuickReply: ', res); });
+      });
+    } else {
+      throw Error(`Error in recapEvent, user not found: ${JSON.stringify(message)}`);
+    }
+  });
+}
+
+function validateEvent(message, callback) {
+  const senderId = message.sender.id;
+  const invitCode = speakeasy.totp({
+    secret: process.env.SPEAKEASY_SECRET_TOKEN.base32 + senderId,
+    digits: 6,
+  });
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if ('context' in userObj) {
+      const myContext = userObj.context;
+      const newEvent = new Event({
+        senderid: senderId,
+        admin_list: [senderId],
+        password: invitCode,
+        event_info: {
+          name: myContext.event_info.name,
+          description: myContext.event_info.description,
+          start_date: myContext.event_info.start_date,
+          end_date: myContext.event_info.end_date,
+          location: {
+            latitude: myContext.event_info.location.latitude,
+            longitude: myContext.event_info.location.longitude,
+          },
+        },
+        welcome_msg: {
+          photo: myContext.welcome_msg.photo,
+          video: myContext.welcome_msg.video,
+          texte: myContext.welcome_msg.texte,
+          audio: myContext.welcome_msg.audio,
+        },
+      });
+
+      newEvent.save()
+      .then(messenger.send({ text: 'Votre évènement est enregistré' }).then((res) => {
+        messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
+        .then((res) => { callback(); });
+      }));
     }
   });
 }
@@ -544,7 +708,7 @@ function actionCall(actionPayload, message) {
           setNextPayload(senderId, 'ADD_EVENT', () => {
             updateContext(senderId, '', () => {
               createNewEvent(message, () => {
-                console.log("createNewEvent OK");
+
               });
             });
           });
@@ -553,8 +717,20 @@ function actionCall(actionPayload, message) {
       ADD_EVENT: () => {
         userMobileCheck(message, () => {
           createNewEvent(message, () => {
-            console.log("createNewEvent OK");
+
           });
+        });
+      },
+      RECAP_EVENT: () => {
+        userMobileCheck(message, () => {
+          recapEvent(message, () => {
+            // Enregistrement d'un nouvel evenement
+          });
+        });
+      },
+      VAL_EVENT: () => {
+        userMobileCheck(message, () => {
+          validateEvent(message, demarrer);
         });
       },
       EDIT_EVENT: () => {
@@ -569,7 +745,7 @@ function actionCall(actionPayload, message) {
       },
       DEFAULT: () => {
         console.log("Action Call DEFAULT!!!");
-      }
+      },
     };
 
     // Run actions check. if any then run default action
@@ -583,12 +759,11 @@ function actionCall(actionPayload, message) {
 // postback Calls
 messenger.on('postback', (message) => {
   const payload = message.postback.payload;
-  console.log(`Postback payload: ${payload}`);
+  console.log(`Postback message recieved: ${JSON.stringify(message)}`);
 
   // Selon payload
   switch (payload) {
     case 'help':
-      console.log('Help payload');
       messenger.send({ text: "l'aide est en cours de réalisation..." })
         .then((res) => {
           console.log(res);
@@ -623,8 +798,7 @@ messenger.on('message', (message) => {
         console.error(`Erreur actionCall Payload: ${payload}`);
       });
     }
-  } else if ('text' in message.message) {
-    console.log('Text message');
+  } else if ('text' in message.message || 'attachments' in message.message) {
     User.findOne({ senderid: message.sender.id }, (err, userObj) => {
       if (err) throw Error(`Error in findOne senderId: ${err}`);
 
@@ -632,7 +806,6 @@ messenger.on('message', (message) => {
         payload = userObj.next_payload;
         console.log(`Next payload on user profil: ${payload} `);
         actionCall(payload, message)
-        .then(console.log('Ok for actionCall'))
         .catch((err) => {
           console.error(`Erreur actionCall Payload: ${payload}`);
         });
@@ -654,7 +827,6 @@ app.get('/webhook', (req, res) => {
     req.query['hub.verify_token'] === process.env.VERIFY_TOKEN) {
     res.send(req.query['hub.challenge']);
   } else {
-    console.log('received');
     res.sendStatus(400);
   }
 });
