@@ -22,6 +22,7 @@ const eventSchema = new Schema({
     texte: String,
     audio: String,
   },
+  event_publish: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('Event', eventSchema);

@@ -10,6 +10,10 @@ const mongoose = require('mongoose');
 const User = require('./models/users'); // Model for mongoose schema validation USERS
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const speakeasy = require('speakeasy'); // Two factor authentication
+const path = require('path');
+const moment = require('moment');
+
+moment.locale('fr'); // 'fr'
 
 // google phone checker
 // Require `PhoneNumberFormat`.
@@ -49,7 +53,7 @@ function botInit() {
   messenger.addWhitelistedDomains(WHITELISTED_DOMAINS);
 
   // Text Page d'accueil
-  const greetingText = new fb.GreetingText(`Organisateur ou Invité, envoyez vos photos, vidéos et commentaires durant vos événements afin de constituer votre livre d'or inoubliable.`);
+  const greetingText = new fb.GreetingText(`Organisateur ou Invité, centralisez les photos, vidéos et commentaires durant vos événements`);
   messenger.setThreadSetting(greetingText)
         .then((result) => {
           console.log(`Greeting Text: ${JSON.stringify(result)}`);
@@ -157,23 +161,42 @@ function demarrer() {
   });
 }
 
-function setNextPayload(senderId, nextPayload) {
+function setNextPayload(senderId, nextPayload, callback) {
   User.findOneAndUpdate({ senderid: senderId },
     { $set: { next_payload: nextPayload } },
     (err, userObj) => {
       if (err) throw Error(`Error in findOne senderId: ${err}`);
 
       if (userObj) { // User exist
-        console.log(`Set next payload on user profil: ${payload} `);
-        return true;
-      } else {  // User n'existe pas
-        return false;
+        console.log(`Set next payload on user profil: ${nextPayload} `);
       }
+      callback();
     });
 }
 
+function updateContext(senderId, conText, callback) {
+  User.findOneAndUpdate({ senderid: senderId },
+    { $set: { context: conText } },
+    (err, userObj) => {
+      if (err) throw Error(`Error in findOneAndUpdate updateContext: ${err}`);
+
+      callback();
+    }
+  );
+}
+
+function location(msg) {
+  const reply = new fb.QuickReply({ title: 'Localisation', content_type: 'location' });
+  const text = new fb.Text(msg);
+  const quickReplies = new fb.QuickReplies([reply]);
+  const payload = Object.assign(text, quickReplies);
+
+  messenger.send(payload).then((res) => {
+    console.log('Debug: ', res);
+  });
+}
 //--------------------------------------------------------------------------------------------
-// Ask MOBILE Function
+// MOBILE Function
 //--------------------------------------------------------------------------------------------
 // Ask for mobile number
 function mobileRequest(senderId) {
@@ -344,6 +367,7 @@ function userMobileCheck(message, callback) {
           user_profile: user,
           last_payload: '',
           next_payload: message.message.quick_reply.payload,
+          context: {},
         });
         newUser.save()
         .then(messenger.send({ text: 'Ceci est votre 1er connexion !' }))
@@ -387,8 +411,101 @@ function choiceOrganis() {
   });
 }
 
+function createNewEvent(message, callback) {
+  const senderId = message.sender.id;
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+    if (userObj) {
+      let context = {};
+
+      if (userObj.context) {
+        context = userObj.context;
+      }
+
+      if ('event_info' in context && 'welcome_msg' in context) {
+        console.log(`Context: ${JSON.stringify(context)}`);
+        if (!context.event_info.name) {
+          context.event_info.name = message.message.text;
+          updateContext(senderId, context, () => {
+            messenger.send({ text: 'Donner une brève description de votre évènement' });
+          });
+        } else if (!context.event_info.description) {
+          context.event_info.description = message.message.text;
+          updateContext(senderId, context, () => {
+            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
+            .then((res) => {
+              console.log('Debug: ', res);
+            })
+            .catch((err) => {
+              console.error(`Erreur updateContext ! ${err}`);
+            });
+          });
+        } else if (!context.event_info.start_date) {
+          const startDate = moment(message.message.text, 'DD-MM-YYYY HH:mm');
+          if (startDate.isValid()) {
+            context.event_info.start_date = startDate.toDate();
+            updateContext(senderId, context, () => {
+              messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
+              .then((res) => {
+                console.log('Debug: ', res);
+              })
+              .catch((err) => {
+                console.error(`Erreur updateContext ! ${err}`);
+              });
+            });
+          } else {
+            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
+            .then((res) => {
+              console.log('Debug: ', res);
+            })
+            .catch((err) => {
+              console.error(`Erreur updateContext ! ${err}`);
+            });
+          }
+        } else if (!context.event_info.end_date) {
+          const startEnd = moment(message.message.text, 'DD-MM-YYYY HH:mm');
+          if (startEnd.isValid()) {
+            context.event_info.end_date = startEnd.toDate();
+            updateContext(senderId, context, () => {
+              location('Ou se déroule votre évènement ?');
+            });
+          } else {
+            messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
+            .then((res) => {
+              console.log('Debug: ', res);
+            })
+            .catch((err) => {
+              console.error(`Erreur updateContext ! ${err}`);
+            });
+          }
+        }
+      } else {
+        context.event_info = {
+          name: '',
+          description: '',
+          start_date: '',
+          end_date: '',
+          location: '',
+        };
+        context.welcome_msg = {
+          photo: '',
+          video: '',
+          texte: '',
+          audio: '',
+        };
+        console.log(`Updateing context: ${JSON.stringify(context)}`);
+        updateContext(senderId, context, () => {
+          messenger.send({ text: 'Quel est le nom de votre évènement ?' });
+        });
+      }
+    } else {
+      throw Error(`Error in findOne userObj sender ID: ${senderId}`);
+    }
+  });
+}
 //--------------------------------------------------------------------------------------------
-// ORGANISATION Function
+// ActionCall Function
 //--------------------------------------------------------------------------------------------
 function actionCall(actionPayload, message) {
   const senderId = message.sender.id;
@@ -424,12 +541,30 @@ function actionCall(actionPayload, message) {
       },
       NEW_EVENT: () => {
         userMobileCheck(message, () => {
-
+          setNextPayload(senderId, 'ADD_EVENT', () => {
+            updateContext(senderId, '', () => {
+              createNewEvent(message, () => {
+                console.log("createNewEvent OK");
+              });
+            });
+          });
+        });
+      },
+      ADD_EVENT: () => {
+        userMobileCheck(message, () => {
+          createNewEvent(message, () => {
+            console.log("createNewEvent OK");
+          });
         });
       },
       EDIT_EVENT: () => {
         userMobileCheck(message, () => {
-
+          setNextPayload(senderId, 'EDIT_EVENT', () => {
+            messenger.send({ text: 'Quel est le nom de votre évènement ?' })
+            .catch((err) => {
+              console.error(`Erreur NEW_EVENT! ${err}`);
+            });
+          });
         });
       },
       DEFAULT: () => {
@@ -529,6 +664,13 @@ app.get('/init', (req, res) => {
   res.sendStatus(200);
 });
 
+app.get('/addweb', (req, res) => {
+  messenger.addWhitelistedDomains(WHITELISTED_DOMAINS).then((res) => {
+    console.log('addWhitelistedDomains: ', res);
+  });
+  res.sendStatus(200);
+});
+
 app.get('/removethread', (req, res) => {
   threadBotRemove();
   res.sendStatus(200);
@@ -544,6 +686,10 @@ app.get('/checkserver', (req, res) => {
 app.post('/webhook', (req, res) => {
   res.sendStatus(200);
   messenger.handle(req.body);
+});
+
+app.get('/datepicker', (req, res) => {
+  res.sendFile(path.join(__dirname + '/datepicker.html'));
 });
 
 //------------------------------------------------------------------------------------

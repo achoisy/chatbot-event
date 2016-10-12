@@ -21,6 +21,7 @@ const userSchema = new Schema({
   },
   last_payload: String,
   next_payload: String,
+  context: {},
 });
 
 module.exports = mongoose.model('User', userSchema);
