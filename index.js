@@ -43,7 +43,7 @@ const WHITELISTED_DOMAINS = [
   'http://chatbotsmaker.fr',
   'https://call2text.me',
 ];
-
+// console.log('Debug: ', JSON.stringify(res));
 //-------------------------------------------------------------------------------------------------
 // Bot Initialisation and configuration
 //-------------------------------------------------------------------------------------------------
@@ -578,8 +578,13 @@ function recapEvent(message, callback) {
 
     if ('context' in userObj) {
       const context = userObj.context;
+      let recapEventText = 'Voici le récapitulatif de votre nouvel évènement:\n';
+      recapEventText += `   • Nom: ${context.event_info.name}\n`;
+      recapEventText += `   • Description: ${context.event_info.description}\n`;
+      recapEventText += `   • Du: ${moment(context.event_info.start_date).format('LLLL')} `;
+      recapEventText += `au ${moment(context.event_info.end_date).format('LLLL')}\n`;
 
-      let buttonsArray = [];
+      const buttonsArray = [];
       if (userObj.context.welcome_msg.video !== '') {
         buttonsArray.push(
           new fb.Button({
@@ -598,30 +603,29 @@ function recapEvent(message, callback) {
           })
         );
       }
+      messenger.send({ text: recapEventText }).then((res) => {
+        console.log('Debug: ', JSON.stringify(res));
+        messenger.send(
+          new fb.GenericTemplate([
+            new fb.Element({
+              title: context.event_info.name,
+              item_url: context.welcome_msg.photo,
+              image_url: context.welcome_msg.photo,
+              subtitle: context.welcome_msg.texte,
+              buttons: buttonsArray,
+            }),
+          ])
+        ).then((res1) => {
+          console.log('Debug: ', JSON.stringify(res1));
+          const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: 'https://call2text.me/images/circle/validate.png' });
+          const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
+          const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
 
-      messenger.send(
-        new fb.GenericTemplate([
-          new fb.Element({
-            title: context.event_info.name,
-            item_url: context.welcome_msg.photo,
-            image_url: context.welcome_msg.photo,
-            subtitle: context.welcome_msg.texte,
-          }),
-          new fb.Element({
-            title: 'Description:',
-            subtitle: context.welcome_msg.description,
-            buttons: buttonsArray,
-          }),
-        ])
-      ).then((res) => {
-        const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: 'https://call2text.me/images/circle/validate.png' });
-        const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
-        const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
-        console.log(eventqrs);
-        messenger.send(Object.assign(
-            { text: 'Faites votre choix:' },
-            eventqrs
-          )).then((res) => { console.log('QuickReply: ', res); });
+          messenger.send(Object.assign(
+              { text: 'Faites votre choix:' },
+              eventqrs
+            )).then((res2) => { console.log('Debug: ', JSON.stringify(res2)); });
+        });
       });
     } else {
       throw Error(`Error in recapEvent, user not found: ${JSON.stringify(message)}`);
@@ -648,8 +652,8 @@ function validateEvent(message, callback) {
           start_date: myContext.event_info.start_date,
           end_date: myContext.event_info.end_date,
           location: {
-            latitude: myContext.event_info.location.latitude,
-            longitude: myContext.event_info.location.longitude,
+            lat: myContext.event_info.location.lat,
+            long: myContext.event_info.location.long,
           },
         },
         welcome_msg: {
@@ -660,7 +664,13 @@ function validateEvent(message, callback) {
         },
       });
 
-      newEvent.save()
+      newEvent.save((err) => {
+        if (err) {
+          console.log('Error: ', err);
+        } else {
+          console.log("Post saved");
+        }
+      })
       .then(messenger.send({ text: 'Votre évènement est enregistré' }).then((res) => {
         messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
         .then((res) => { callback(); });
@@ -679,13 +689,16 @@ function actionCall(actionPayload, message) {
     const actions = {
       PARTI_EVENEMENT: () => { // Join event as a guest
         userMobileCheck(message, () => {
-          console.log('Entering event as a guest' + message);
+          setNextPayload(senderId, 'PARTI_EVENEMENT', () => {
+            // TODO: participe a un evenement
+          });
         });
       },
       ORGAN_EVENEMENT: () => {
         userMobileCheck(message, () => {
-          console.log('Entering event as a Host' + message.sender.id);
-          choiceOrganis();
+          setNextPayload(senderId, 'ORGAN_EVENEMENT', () => {
+            choiceOrganis();
+          });
         });
       },
       CONF_MOBILE: () => {
@@ -730,7 +743,13 @@ function actionCall(actionPayload, message) {
       },
       VAL_EVENT: () => {
         userMobileCheck(message, () => {
-          validateEvent(message, demarrer);
+          validateEvent(message, () => {
+            updateContext(senderId, '', () => {
+              setNextPayload(senderId, '', () => {
+                demarrer();
+              });
+            });
+          });
         });
       },
       EDIT_EVENT: () => {
@@ -744,7 +763,7 @@ function actionCall(actionPayload, message) {
         });
       },
       DEFAULT: () => {
-        console.log("Action Call DEFAULT!!!");
+        demarrer();
       },
     };
 
