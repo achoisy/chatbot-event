@@ -7,6 +7,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fb = require('fbmessenger');
 const mongoose = require('mongoose');
+//const mongoosastic = require('mongoosastic');
 const User = require('./models/users'); // Model for mongoose schema validation USERS
 const Event = require('./models/events');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -162,6 +163,15 @@ function demarrer() {
   });
 }
 
+function sendMessage(msgText, callback) {
+  messenger.send({ text: msgText }).then((res) => {
+    console.log(`Debug sendMessage: ${res}`);
+    callback();
+  }).catch((err) => {
+    console.error(`Erreur: ${err}`);
+  });
+}
+
 function setNextPayload(senderId, nextPayload, callback) {
   User.findOneAndUpdate({ senderid: senderId },
     { $set: { next_payload: nextPayload } },
@@ -207,10 +217,7 @@ function mobileRequest(senderId) {
     (err, userObj) => {
       if (err) throw Error(`Error in findOneAndUpdate mobileRequest: ${err}`);
 
-      messenger.send({ text: 'Tapez votre numero de Mobile (ex: 0696123456).' })
-      .catch((err) => {
-        console.error('Erreur userMobileCheck!');
-      });
+      sendMessage('Tapez votre numero de Mobile (ex: 0696123456).');
     });
 }
 
@@ -281,10 +288,7 @@ function smsCodeSend(senderId, mobileNumber) {
         if (err) throw Error(`Error in findOneAndUpdate smsCodeSend: ${err}`);
         console.log('findone !!!!');
         // request invitation code to user
-        messenger.send({ text: 'Tapez le code invitation reçu par SMS' })
-        .catch((err) => {
-          console.error(`Erreur smsCodeSend! ${err}`);
-        });
+        sendMessage('Tapez le code invitation reçu par SMS');
       });
   });
 }
@@ -305,14 +309,12 @@ function userMobileCheck(message, callback) {
         } catch (e) {
           console.log('phoneUtil error: ', e);
         }
-        console.log(`numberValid: ${numberValid}`);
         if (numberValid) {
           console.log("mobile getNumberType: " + phoneUtil.getNumberType(mobileNumber));
           if (phoneUtil.getNumberType(mobileNumber) !== 1) {
             // Numero n est pas un num mobile
-            messenger.send({ text: `Désolé, mais le numéro ${phoneUtil.format(mobileNumber, PNF.NATIONAL)} n'est pas un numéro de mobile` })
-            .then((res) => {
-              console.log('res: ', res);
+            const userMsg = `Désolé, mais le numéro ${phoneUtil.format(mobileNumber, PNF.NATIONAL)} n'est pas un numéro de mobile`;
+            sendMessage(userMsg, () => {
               mobileRequest(senderId);
             });
           } else { // Numero mobile valide
@@ -320,46 +322,36 @@ function userMobileCheck(message, callback) {
           }
         } else {
           // Numero non valide
-          messenger.send({ text: `Désolé, mais le numéro n'est pas valide` })
-          .then((res) => {
-            console.log('res: ', res);
+          sendMessage(`Désolé, mais le numéro n'est pas valide`, () => {
             mobileRequest(senderId);
           });
         }
-      } else { // User à deja un numero de mobile
-        // Send SMS Verification
-        if (!userObj.user_mobile.verified) { // User mobile number is not verified
-          if (!userObj.user_mobile.verif_proc) { // User need a verif code !
-            smsCodeSend(senderId, userObj.user_mobile.mobile_number);
-          } else if ('text' in message.message) { // User should be verifying code here or maybe he have not received the code yet
-            const codeToVerify = message.message.text;
-            const checkCode = speakeasy.totp.verify({
-              secret: process.env.SPEAKEASY_SECRET_TOKEN.base32 + senderId,
-              encoding: 'base32',
-              token: codeToVerify,
-              step: 120,
-              window: 10,
+      } else if (!userObj.user_mobile.verified) { // User mobile number is not verified
+        if (!userObj.user_mobile.verif_proc) { // User need a verif code !
+          smsCodeSend(senderId, userObj.user_mobile.mobile_number);
+        } else if ('text' in message.message) { // User should be verifying code here or maybe he have not received the code yet
+          const codeToVerify = message.message.text;
+          const checkCode = speakeasy.totp.verify({
+            secret: process.env.SPEAKEASY_SECRET_TOKEN.base32 + senderId,
+            encoding: 'base32',
+            token: codeToVerify,
+            step: 120,
+            window: 10,
+          });
+          if (!checkCode) { // Code SMS incorrecte
+            sendMessage(`Désolé, mais le code d'invitation n'est pas valide`, () => {
+              checkIfReceivedSMS(userObj.user_mobile.mobile_number);
             });
-            if (!checkCode) { // Code SMS incorrecte
-              messenger.send({ text: `Désolé, mais le code d'invitation n'est pas valide` })
-              .then((res) => {
-                console.log("send checkIfReceivedSMS");
-                checkIfReceivedSMS(userObj.user_mobile.mobile_number);
-              });
-            } else { // Code SMS OK. rediriger vers le service demandé
-              validateUser(senderId);
-              callback(message);
-            }
-          } else { // User should enter SMS code again
-            messenger.send({ text: 'Tapez le code invitation reçu par SMS' })
-            .catch((err) => {
-              console.error(`Erreur smsCodeSend! ${err}`);
-            });
+          } else { // Code SMS OK. rediriger vers le service demandé
+            validateUser(senderId);
+            callback(message);
           }
-        } else { // User should continu to service requested
-          console.log('Suite de la validation du numero !!');
-          callback(message);
+        } else { // User should enter SMS code again
+          sendMessage('Tapez le code invitation reçu par SMS');
         }
+      } else { // User should continu to service requested
+        console.log('Suite de la validation du numero !!');
+        callback(message);
       }
     } else {  // User n'existe pas
       messenger.getUser().then((user) => {
@@ -371,11 +363,9 @@ function userMobileCheck(message, callback) {
           context: {},
         });
         newUser.save()
-        .then(messenger.send({ text: 'Ceci est votre 1er connexion !' }))
-        .then((res) => {
-          console.log('res: ', res);
+        .then(sendMessage('Ceci est votre 1er connexion !', () => {
           mobileRequest(senderId);
-        });
+        }));
       });
     }
   });
@@ -439,46 +429,30 @@ function createNewEvent(message, callback) {
       if (userObj.context) {
         context = userObj.context;
       }
-
+      const Qdate1 = 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH\n ex: 29/12/2016 09H30';
+      const Qdate2 = 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH\n ex: 29/12/2016 22H30';
+      // Start context filling
       if ('event_info' in context && 'welcome_msg' in context) {
         console.log(`Context: ${JSON.stringify(context)}`);
         if (!context.event_info.name) {
           context.event_info.name = message.message.text;
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Donner une brève description de votre évènement' });
+            sendMessage('Donner une brève description de votre évènement');
           });
         } else if (!context.event_info.description) {
           context.event_info.description = message.message.text;
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
+            sendMessage(Qdate1);
           });
         } else if (!context.event_info.start_date) {
           const startDate = moment(message.message.text, 'DD-MM-YYYY HH:mm');
           if (startDate.isValid()) {
             context.event_info.start_date = startDate.toDate();
             updateContext(senderId, context, () => {
-              messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-              .then((res) => {
-                console.log('Debug: ', res);
-              })
-              .catch((err) => {
-                console.error(`Erreur updateContext ! ${err}`);
-              });
+              sendMessage(Qdate2);
             });
-          } else {
-            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 09H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
+          } else { // Startdate is not valide so ask again
+            sendMessage(Qdate1);
           }
         } else if (!context.event_info.end_date) {
           const startEnd = moment(message.message.text, 'DD-MM-YYYY HH:mm');
@@ -487,14 +461,8 @@ function createNewEvent(message, callback) {
             updateContext(senderId, context, () => {
               location('Ou se déroule votre évènement ?');
             });
-          } else {
-            messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
+          } else { // EndDate is not valide so ask again
+            sendMessage(Qdate2);
           }
         } else if (!context.event_info.location) {
           if ('attachments' in message.message) {
@@ -533,7 +501,7 @@ function createNewEvent(message, callback) {
           }
 
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Bien reçu...' }).then((res) => {
+            sendMessage('Bien reçu...', () => {
               choiceAddEventMessage();
             });
           });
@@ -662,7 +630,7 @@ function validateEvent(message, callback) {
         if (err) {
           console.log('Error: ', err);
         } else {
-          console.log("Post saved");
+          console.log('Post saved');
         }
       })
       .then(messenger.send({ text: 'Votre évènement est enregistré' }).then((res) => {
@@ -672,6 +640,11 @@ function validateEvent(message, callback) {
     }
   });
 }
+
+//--------------------------------------------------------------------------------------------
+// PARTICIPATION Function
+//--------------------------------------------------------------------------------------------
+
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
 //--------------------------------------------------------------------------------------------
@@ -702,9 +675,8 @@ function actionCall(actionPayload, message) {
         mobileRequest(senderId);
       },
       CHECK_SMS_OUI: () => {
-        messenger.send({ text: 'Retapez le code invitation reçu par SMS' })
-        .catch((err) => {
-          console.error(`Erreur smsCodeSend! ${err}`);
+        sendMessage('Retapez le code invitation reçu par SMS', () => {
+          console.log('CHECK_SMS_OUI just run');
         });
       },
       CHECK_SMS_NON: () => {
@@ -749,10 +721,7 @@ function actionCall(actionPayload, message) {
       EDIT_EVENT: () => {
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'EDIT_EVENT', () => {
-            messenger.send({ text: 'Quel est le nom de votre évènement ?' })
-            .catch((err) => {
-              console.error(`Erreur NEW_EVENT! ${err}`);
-            });
+            // Not in use in MVP version
           });
         });
       },
@@ -777,10 +746,7 @@ messenger.on('postback', (message) => {
   // Selon payload
   switch (payload) {
     case 'help':
-      messenger.send({ text: "l'aide est en cours de réalisation..." })
-        .then((res) => {
-          console.log(res);
-        });
+      sendMessage("l'aide est en cours de réalisation...")
       break;
     case 'start': {
       demarrer();
