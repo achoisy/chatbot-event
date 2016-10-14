@@ -8,22 +8,14 @@ const userDataSchema = new Schema({
   moderator: [String],  // List of moderated events
   join_events: [String],  // List of joinned events
   banned_events: [String],  // List of banned from events
-  user_score: Number, // Global Score
+  user_score: { type: Number, default: 0 }, // Global Score
   scoreby_event: [
     {
       eventid: String,
       score: Number,
     },
   ],
-  attachments: [
-    {
-      create_date: { type: Date, default: Date.now },
-      content_type: String,
-      eventid: String,
-      content: String,
-      score: Number,
-    },
-  ],
+  attachments: [String],
 });
 
 module.exports = mongoose.model('UserData', userDataSchema);
