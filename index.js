@@ -85,7 +85,7 @@ function botInit() {
   const menu_start = new fb.PersistentMenuItem({
     type: 'postback',
     title: 'Demarrer',
-    payload: 'start',
+    payload: 'DEFAULT',
   });
 
   const menu_blog = new fb.PersistentMenuItem({
@@ -135,6 +135,7 @@ function threadBotRemove() {
 //--------------------------------------------------------------------------------------------
 // General Function
 //--------------------------------------------------------------------------------------------
+
 function demarrer() {
   messenger.send(
     new fb.GenericTemplate([
@@ -165,8 +166,10 @@ function demarrer() {
 
 function sendMessage(msgText, callback) {
   messenger.send({ text: msgText }).then((res) => {
-    console.log(`Debug sendMessage: ${res}`);
-    callback();
+    console.log(`Debug sendMessage: ${JSON.stringify(res)}`);
+    if (typeof callback === 'function') {
+      callback();
+    }
   }).catch((err) => {
     console.error(`Erreur: ${err}`);
   });
@@ -191,9 +194,25 @@ function updateContext(senderId, conText, callback) {
     (err, userObj) => {
       if (err) throw Error(`Error in findOneAndUpdate updateContext: ${err}`);
 
-      callback();
+      if (typeof callback === 'function') {
+        callback();
+      }
     }
   );
+}
+
+function getContext(senderId, contextSearch, callback) {
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne getContext: ${err}`);
+
+    if (typeof callback === 'function') {
+      if (userObj && contextSearch in userObj.context) {
+        callback(userObj.context.contextSearch);
+      } else {
+        callback();
+      }
+    }
+  });
 }
 
 function location(msg) {
@@ -644,7 +663,49 @@ function validateEvent(message, callback) {
 //--------------------------------------------------------------------------------------------
 // PARTICIPATION Function
 //--------------------------------------------------------------------------------------------
+function searchEvent(message, callback) {
+  if ('text' in message.message) {
+    const searchText = message.message.text;
+    Event.search({
+      match: {
+        "event_info.name": searchText
+      },
+    },
+    { size: 3,
+      sort: "_score",
+    },
+    (err, results) => {
+      console.log(`Search result: ${JSON.stringify(results)}`);
+      if (results.hits && results.hits.total >= 1) {
+        const hitList = results.hits.hits;
+        const hitListElements = [];
 
+        hitList.forEach((hit) => {
+          hitListElements.push(
+            new fb.Element({
+              title: hit._source.event_info.name,
+              image_url: hit._source.welcome_msg.photo,
+              subtitle: hit._source.event_info.description,
+              buttons: [
+                new fb.Button({ type: 'postback', title: 'REJOINDRE', payload: `JOIN_EVENT#${hit._id}` }),
+              ],
+            })
+          );
+        });
+        messenger.send(
+          new fb.GenericTemplate(hitListElements)
+        ).then((res) => {
+          console.log(`Debug searchEvent: ${JSON.stringify(res)}`);
+          sendMessage('REJOINDRE un évènement ou effectuez une nouvelle recherche');
+        });
+      } else {
+        sendMessage("Désolé, aucun évènement trouvé...\nVeuillez faire une nouvelle recherche");
+      }
+    });
+  } else {
+    sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
+  }
+}
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
 //--------------------------------------------------------------------------------------------
@@ -657,7 +718,21 @@ function actionCall(actionPayload, message) {
       PARTI_EVENEMENT: () => { // Join event as a guest
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'PARTI_EVENEMENT', () => {
-            // TODO: participe a un evenement
+            // Check if context exist with event id
+            // If yes then connect to this event
+            // if not then search for context to log to
+            const contextSearch = 'event_join';
+            getContext(senderId, contextSearch, (context) => {
+              if (context) {
+                setNextPayload(senderId, 'SENDTO_EVENT', () => {
+                  sendMessage(`reception de fichier pour evenement: ${context.name}`);
+                });
+              } else {
+                setNextPayload(senderId, 'SEARCH_EVENT', () => {
+                  sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
+                });
+              }
+            });
           });
         });
       },
@@ -685,7 +760,7 @@ function actionCall(actionPayload, message) {
       NEW_EVENT: () => {
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'ADD_EVENT', () => {
-            updateContext(senderId, '', () => {
+            updateContext(senderId, {}, () => {
               createNewEvent(message, () => {
 
               });
@@ -710,12 +785,27 @@ function actionCall(actionPayload, message) {
       VAL_EVENT: () => {
         userMobileCheck(message, () => {
           validateEvent(message, () => {
-            updateContext(senderId, '', () => {
+            updateContext(senderId, {}, () => {
               setNextPayload(senderId, '', () => {
                 demarrer();
               });
             });
           });
+        });
+      },
+      SEARCH_EVENT: () => {
+        userMobileCheck(message, () => {
+          searchEvent(message);
+        });
+      },
+      JOIN_EVENT: () => {
+        userMobileCheck(message, () => {
+
+        });
+      },
+      SENDTO_EVENT: () => {
+        userMobileCheck(message, () => {
+
         });
       },
       EDIT_EVENT: () => {
@@ -724,6 +814,9 @@ function actionCall(actionPayload, message) {
             // Not in use in MVP version
           });
         });
+      },
+      help: () => {
+        sendMessage("l'aide est en cours de réalisation...");
       },
       DEFAULT: () => {
         demarrer();
@@ -737,30 +830,9 @@ function actionCall(actionPayload, message) {
 //------------------------------------------------------------------------------------------------
 // On Events
 //------------------------------------------------------------------------------------------------
-
-// postback Calls
-messenger.on('postback', (message) => {
-  const payload = message.postback.payload;
-  console.log(`Postback message recieved: ${JSON.stringify(message)}`);
-
-  // Selon payload
-  switch (payload) {
-    case 'help':
-      sendMessage("l'aide est en cours de réalisation...")
-      break;
-    case 'start': {
-      demarrer();
-      break;
-    }
-    default:
-
-  }
-});
-
-// Action lors de la reception d'un message
-messenger.on('message', (message) => {
+function receiveMessage(message, callback) {
   console.log(`Message received: ${JSON.stringify(message)}`);
-  let payload = '';
+  let payload = 'DEFAULT';
   // Payload quick replies
   if ('quick_reply' in message.message) {
     if ('payload' in message.message.quick_reply) {
@@ -770,12 +842,6 @@ messenger.on('message', (message) => {
       } else {
         payload = message.message.quick_reply.payload;
       }
-
-      actionCall(payload, message)
-      .then(console.log('Ok for actionCall'))
-      .catch((err) => {
-        console.error(`Erreur actionCall Payload: ${payload}`);
-      });
     }
   } else if ('text' in message.message || 'attachments' in message.message) {
     User.findOne({ senderid: message.sender.id }, (err, userObj) => {
@@ -784,16 +850,31 @@ messenger.on('message', (message) => {
       if (userObj) { // User exist
         payload = userObj.next_payload;
         console.log(`Next payload on user profil: ${payload} `);
-        actionCall(payload, message)
-        .catch((err) => {
-          console.error(`Erreur actionCall Payload: ${payload}`);
-        });
-      } else {  // User n'existe pas
-        messenger.send({ text: 'Veuillez faire un choix...' })
-        .then(demarrer());
       }
     });
+  } else if ('postback' in message && message.postback.payload) {
+    // Passage de parametre dans le payload
+    if (message.postback.payload.indexOf('#')) {
+      payload = message.postback.payload.split('#', 1)[0];
+    } else {
+      payload = message.postback.payload;
+    }
   }
+  // Take action !!
+  actionCall(payload, message)
+  .catch((err) => {
+    console.log(`Erreur actionCall Payload: ${payload}`, err);
+  });
+}
+
+// postback Calls
+messenger.on('postback', (message) => {
+  receiveMessage(message);
+});
+
+// Action lors de la reception d'un message
+messenger.on('message', (message) => {
+  receiveMessage(message);
 });
 
 //-------------------------------------------------------------------------------------------
