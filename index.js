@@ -7,13 +7,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fb = require('fbmessenger');
 const mongoose = require('mongoose');
-//const mongoosastic = require('mongoosastic');
-const User = require('./models/users'); // Model for mongoose schema validation USERS
-const Event = require('./models/events');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const speakeasy = require('speakeasy'); // Two factor authentication
 const path = require('path');
 const moment = require('moment');
+
+// Model for mongoose schema
+const User = require('./models/users');
+const Event = require('./models/events');
+const EventData = require('./models/eventdata');
+const UserData = require('./models/userdata');
+const Attach = require('./models/attach');
 
 moment.locale('fr'); // 'fr'
 
@@ -381,10 +385,29 @@ function userMobileCheck(message, callback) {
           next_payload: message.message.quick_reply.payload,
           context: {},
         });
-        newUser.save()
-        .then(sendMessage('Ceci est votre 1er connexion !', () => {
-          mobileRequest(senderId);
-        }));
+        newUser.save((err, userObject) => {
+          if (err) {
+            console.log('Error: ', err);
+          } else {
+            const newUserData = new UserData({
+              userid: userObject.id,
+              admin: [''],
+              moderators: [''],
+              join_events: [''],
+              banned_events: [''],
+            });
+            newUserData.save((err) => {
+              if (err) {
+                console.log('Error: ', err);
+              } else {
+                console.log('New user created');
+                sendMessage('Ceci est votre 1er connexion !', () => {
+                  mobileRequest(senderId);
+                });
+              }
+            });
+          }
+        });
       });
     }
   });
@@ -644,18 +667,36 @@ function validateEvent(message, callback) {
           audio: myContext.welcome_msg.audio,
         },
       });
-
-      newEvent.save((err) => {
+      newEvent.save((err, eventObject) => {
         if (err) {
           console.log('Error: ', err);
         } else {
-          console.log('Post saved');
+          const newEventData = new EventData({
+            eventid: eventObject.id,
+            moderators: [senderId],
+            join_users: [senderId],
+            banned_users: [''],
+          });
+          newEventData.save((err) => {
+            if (err) {
+              console.log('Error: ', err);
+            } else {
+              UserData.update({ userid: senderId }, { $push: { admin: eventObject.id } }, (err) => {
+                if (err) {
+                  console.log('Error: ', err);
+                } else {
+                  console.log('New event created and userData updated');
+                  messenger.send({ text: 'Votre évènement est enregistré' })
+                  .then((res) => {
+                    messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
+                    .then((res) => { callback(); });
+                  });
+                }
+              });
+            }
+          });
         }
-      })
-      .then(messenger.send({ text: 'Votre évènement est enregistré' }).then((res) => {
-        messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
-        .then((res) => { callback(); });
-      }));
+      });
     }
   });
 }
@@ -718,9 +759,6 @@ function actionCall(actionPayload, message) {
       PARTI_EVENEMENT: () => { // Join event as a guest
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'PARTI_EVENEMENT', () => {
-            // Check if context exist with event id
-            // If yes then connect to this event
-            // if not then search for context to log to
             const contextSearch = 'event_join';
             getContext(senderId, contextSearch, (context) => {
               if (context) {
@@ -800,12 +838,12 @@ function actionCall(actionPayload, message) {
       },
       JOIN_EVENT: () => {
         userMobileCheck(message, () => {
-
+          // TODO: ajout du user sur l'evenement
         });
       },
       SENDTO_EVENT: () => {
         userMobileCheck(message, () => {
-
+          // TODO: Reception des attachements
         });
       },
       EDIT_EVENT: () => {
