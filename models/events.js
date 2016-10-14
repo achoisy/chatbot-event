@@ -9,7 +9,7 @@ const eventSchema = new Schema({
   password: String,
   event_info: {
     name: { type: String, es_indexed: true },
-    description: String,
+    description: { type: String, es_indexed: true },
     start_date: { type: Date, es_indexed: true },
     end_date: { type: Date, es_indexed: true },
     location: {
