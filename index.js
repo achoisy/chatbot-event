@@ -187,6 +187,8 @@ function setNextPayload(senderId, nextPayload, callback) {
 
       if (userObj) { // User exist
         console.log(`Set next payload on user profil: ${nextPayload} `);
+      } else {
+        console.log('User not found ! SenderId: ', senderId);
       }
       callback();
     });
@@ -318,7 +320,6 @@ function smsCodeSend(senderId, mobileNumber) {
 
 function userMobileCheck(message, callback) {
   const senderId = message.sender.id;
-  console.log("Entering userMobileCheck");
   User.findOne({ senderid: senderId }, (err, userObj) => {
     if (err) throw Error(`Error in findOne senderId: ${err}`);
 
@@ -373,7 +374,7 @@ function userMobileCheck(message, callback) {
           sendMessage('Tapez le code invitation reçu par SMS');
         }
       } else { // User should continu to service requested
-        console.log('Suite de la validation du numero !!');
+        console.log("userMobileCheck OK");
         callback(message);
       }
     } else {  // User n'existe pas
@@ -381,9 +382,8 @@ function userMobileCheck(message, callback) {
         const newUser = new User({
           senderid: senderId,
           user_profile: user,
-          last_payload: '',
           next_payload: message.message.quick_reply.payload,
-          context: {},
+          context: { newuser: true },
         });
         newUser.save((err, userObject) => {
           if (err) {
@@ -391,10 +391,6 @@ function userMobileCheck(message, callback) {
           } else {
             const newUserData = new UserData({
               userid: userObject.id,
-              admin: [''],
-              moderators: [''],
-              join_events: [''],
-              banned_events: [''],
             });
             newUserData.save((err) => {
               if (err) {
@@ -675,7 +671,6 @@ function validateEvent(message, callback) {
             eventid: eventObject.id,
             moderators: [senderId],
             join_users: [senderId],
-            banned_users: [''],
           });
           newEventData.save((err) => {
             if (err) {
@@ -747,6 +742,111 @@ function searchEvent(message, callback) {
     sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
   }
 }
+
+function joinningEvent(message, callback) {
+  const eventId = message.postback.payload.split('#', 2)[1];
+  const senderId = message.sender.id;
+
+  EventData.findOne({ eventid: eventId }, (err, eventDataObject) => {
+    if (err) throw Error(`Error in findOne EventData: ${err}`);
+
+    let bannedUser = false;
+    let moderators = false;
+    let join = false;
+    let i;
+
+    if (eventDataObject) {
+      for (i = 0; i < eventDataObject.banned_users.length; i += 1) {
+        if (eventDataObject.banned_users[i] === senderId) {
+          bannedUser = true;
+        }
+      }
+      for (i = 0; i < eventDataObject.moderators.length; i += 1) {
+        if (eventDataObject.moderators[i] === senderId) {
+          moderators = true;
+        }
+      }
+      for (i = 0; i < eventDataObject.join_users.length; i += 1) {
+        if (eventDataObject.join_users[i] === senderId) {
+          join = true;
+        }
+      }
+
+      if (bannedUser) {
+        sendMessage('Désolé, mais vous êtes bannis de ce groupe');
+      } else if (join) {
+        User.update({ senderid: senderId },
+          { $set: { 'context.verified': true, 'context.joinEventId': eventId } },
+          (err) => {
+            if (err) throw Error(`Error in update joinningEvent: ${err}`);
+
+            setNextPayload(senderId, 'SENDTO_EVENT', () => {
+              sendMessage(`Bon retour dans le groupe!!`);
+            });
+          });
+      } else {
+        const contextJoinEvent = {
+          joinEventId: eventId,
+          verified: false,
+        };
+        updateContext(senderId, contextJoinEvent, () => {
+          setNextPayload(senderId, 'CHECK_INVITATION_CODE', () => {
+            sendMessage("Taper le code d'invitation");
+          });
+        });
+      }
+    } else {
+      console.log('Erreur eventDataObject', JSON.stringify(eventDataObject));
+    }
+  });
+}
+
+function checkInvtCode(message, callback) {
+  const senderId = message.sender.id;
+
+  if ('text' in message.message) {
+    const invitCode = message.message.text;
+
+    User.findOne({senderid: senderId}, (err, userObject) => {
+      if (err) throw Error(`Error in findOne checkInvtCode1: ${err}`);
+
+      if (userObject) {
+        if ('joinEventId' in userObject.context) {
+          Event.findOne({ _id: userObject.context.joinEventId }, (err, eventObject) => {
+            if (err) throw Error(`Error in findOne checkInvtCode2: ${err}`);
+
+            if (eventObject) {
+              if (invitCode.trim() === eventObject.password) {
+                EventData.update({ eventid: eventObject._id }, { $push: { join_users: senderId } },
+                  (err) => {
+                    if (err) throw Error(`Error in findOne checkInvtCode3: ${err}`);
+
+                    User.update({ userid: senderId }, { $set: { 'context.verified': true, 'context.joinEventId': eventObject._id } }, (err) => {
+                      if (err) throw Error(`Error in findOne checkInvtCode4: ${err}`);
+
+                      setNextPayload(senderId, 'SENDTO_EVENT', () => {
+                        sendMessage(`Bienvenu dans le groupe!!`);
+                      });
+                    });
+                  });
+              } else {
+                sendMessage('Désolé code incorrect...', () => {
+                  sendMessage("Taper le code d'invitation");
+                });
+              }
+            } else {
+              console.log('Event not found ! eventid: ', userObject.context.joinEventId);
+            }
+          });
+        }
+      } else {
+        console.log('User not found ! SenderId: ', senderId);
+      }
+    });
+  } else {
+    sendMessage("Taper le code d'invitation");
+  }
+}
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
 //--------------------------------------------------------------------------------------------
@@ -758,19 +858,8 @@ function actionCall(actionPayload, message) {
     const actions = {
       PARTI_EVENEMENT: () => { // Join event as a guest
         userMobileCheck(message, () => {
-          setNextPayload(senderId, 'PARTI_EVENEMENT', () => {
-            const contextSearch = 'event_join';
-            getContext(senderId, contextSearch, (context) => {
-              if (context) {
-                setNextPayload(senderId, 'SENDTO_EVENT', () => {
-                  sendMessage(`reception de fichier pour evenement: ${context.name}`);
-                });
-              } else {
-                setNextPayload(senderId, 'SEARCH_EVENT', () => {
-                  sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
-                });
-              }
-            });
+          setNextPayload(senderId, 'SEARCH_EVENT', () => {
+            sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
           });
         });
       },
@@ -838,12 +927,13 @@ function actionCall(actionPayload, message) {
       },
       JOIN_EVENT: () => {
         userMobileCheck(message, () => {
-          // TODO: ajout du user sur l'evenement
+          joinningEvent(message);
         });
       },
       SENDTO_EVENT: () => {
         userMobileCheck(message, () => {
           // TODO: Reception des attachements
+          sendMessage('reception d attachements !');
         });
       },
       EDIT_EVENT: () => {
@@ -851,6 +941,11 @@ function actionCall(actionPayload, message) {
           setNextPayload(senderId, 'EDIT_EVENT', () => {
             // Not in use in MVP version
           });
+        });
+      },
+      CHECK_INVITATION_CODE: () => {
+        userMobileCheck(message, () => {
+          checkInvtCode(message);
         });
       },
       help: () => {
@@ -872,7 +967,16 @@ function receiveMessage(message, callback) {
   console.log(`Message received: ${JSON.stringify(message)}`);
   let payload = 'DEFAULT';
   // Payload quick replies
-  if ('quick_reply' in message.message) {
+
+  if ('postback' in message && message.postback.payload) {
+    // Passage de parametre dans le payload
+    if (message.postback.payload.indexOf('#')) {
+      payload = message.postback.payload.split('#', 1)[0];
+    } else {
+      payload = message.postback.payload;
+    }
+    actionCall(payload, message);
+  } else if ('quick_reply' in message.message) {
     if ('payload' in message.message.quick_reply) {
       // Passage de parametre dans le payload
       if (message.message.quick_reply.payload.indexOf('#')) {
@@ -881,28 +985,20 @@ function receiveMessage(message, callback) {
         payload = message.message.quick_reply.payload;
       }
     }
+    actionCall(payload, message);
   } else if ('text' in message.message || 'attachments' in message.message) {
     User.findOne({ senderid: message.sender.id }, (err, userObj) => {
       if (err) throw Error(`Error in findOne senderId: ${err}`);
 
       if (userObj) { // User exist
         payload = userObj.next_payload;
-        console.log(`Next payload on user profil: ${payload} `);
       }
+      actionCall(payload, message);
     });
-  } else if ('postback' in message && message.postback.payload) {
-    // Passage de parametre dans le payload
-    if (message.postback.payload.indexOf('#')) {
-      payload = message.postback.payload.split('#', 1)[0];
-    } else {
-      payload = message.postback.payload;
-    }
+  } else {
+    // Take action !!
+    actionCall(payload, message);
   }
-  // Take action !!
-  actionCall(payload, message)
-  .catch((err) => {
-    console.log(`Erreur actionCall Payload: ${payload}`, err);
-  });
 }
 
 // postback Calls
