@@ -35,6 +35,7 @@ mongoose.connect(mongodbUrl);
 // Express wrap
 const app = express();
 
+app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -194,7 +195,7 @@ function setNextPayload(senderId, nextPayload, callback) {
     });
 }
 
-function updateContext(senderId, conText, callback) {
+function updateContext(senderId, callback) {
   User.findOneAndUpdate({ senderid: senderId },
     { $set: { context: conText } },
     (err, userObj) => {
@@ -207,13 +208,15 @@ function updateContext(senderId, conText, callback) {
   );
 }
 
-function getContext(senderId, contextSearch, callback) {
+function getContext(senderId, callback) {
   User.findOne({ senderid: senderId }, (err, userObj) => {
     if (err) throw Error(`Error in findOne getContext: ${err}`);
 
     if (typeof callback === 'function') {
-      if (userObj && contextSearch in userObj.context) {
-        callback(userObj.context.contextSearch);
+      if (userObj && 'context' in userObj) {
+        const context = userObj.context;
+        console.log('Context: ', JSON.stringify(context));
+        callback(userObj.context);
       } else {
         callback();
       }
@@ -231,6 +234,7 @@ function location(msg) {
     console.log('Debug: ', res);
   });
 }
+
 //--------------------------------------------------------------------------------------------
 // MOBILE Function
 //--------------------------------------------------------------------------------------------
@@ -699,6 +703,27 @@ function validateEvent(message, callback) {
 //--------------------------------------------------------------------------------------------
 // PARTICIPATION Function
 //--------------------------------------------------------------------------------------------
+function camera(message, callback) {
+  const senderId = message.sender.id;
+  getContext(senderId, (context) => {
+    console.log('test11', JSON.stringify(context));
+    if (context && 'joinEventId' in context) {
+      messenger.send(
+        new fb.GenericTemplate([
+          new fb.Element({
+            title: 'Ajouter une photo',
+            image_url: 'https://call2text.me/images/square/add_photo.png',
+            subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
+            buttons: [
+              new fb.Button({ type: 'web_url', title: 'CAMERA', url: `https://call2text.me/camera.html?senderid=${senderId}&eventid=${context.joinEventId}` }),
+            ],
+          }),
+        ])
+      );
+    }
+  });
+}
+
 function searchEvent(message, callback) {
   if ('text' in message.message) {
     const searchText = message.message.text;
@@ -781,7 +806,8 @@ function joinningEvent(message, callback) {
             if (err) throw Error(`Error in update joinningEvent: ${err}`);
 
             setNextPayload(senderId, 'SENDTO_EVENT', () => {
-              sendMessage(`Bon retour dans le groupe!!`);
+              sendMessage(`Vous etes dans le groupe!!`);
+              camera(message);
             });
           });
       } else {
@@ -847,6 +873,8 @@ function checkInvtCode(message, callback) {
     sendMessage("Taper le code d'invitation");
   }
 }
+
+
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
 //--------------------------------------------------------------------------------------------
@@ -933,7 +961,7 @@ function actionCall(actionPayload, message) {
       SENDTO_EVENT: () => {
         userMobileCheck(message, () => {
           // TODO: Reception des attachements
-          sendMessage('reception d attachements !');
+          camera(message);
         });
       },
       EDIT_EVENT: () => {
@@ -1058,6 +1086,10 @@ app.get('/datepicker', (req, res) => {
   res.sendFile(path.join(__dirname + '/datepicker.html'));
 });
 
+app.post('/uploads', (req, res) => {
+  res.sendStatus(200);
+  console.log(req.body);
+});
 //------------------------------------------------------------------------------------
 // Start Server
 //------------------------------------------------------------------------------------
