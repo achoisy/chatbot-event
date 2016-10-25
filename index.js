@@ -11,6 +11,7 @@ const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWI
 const speakeasy = require('speakeasy'); // Two factor authentication
 const path = require('path');
 const moment = require('moment');
+const exphbs = require('express-handlebars');
 
 // Model for mongoose schema
 const User = require('./models/users');
@@ -38,6 +39,9 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.engine('handlebars', exphbs({ defaultLayout: 'main' }));
+app.set('view engine', 'handlebars');
 
 // Configuration du webhook facebook
 const messenger = new fb.Messenger({
@@ -195,7 +199,7 @@ function setNextPayload(senderId, nextPayload, callback) {
     });
 }
 
-function updateContext(senderId, callback) {
+function updateContext(senderId, conText, callback) {
   User.findOneAndUpdate({ senderid: senderId },
     { $set: { context: conText } },
     (err, userObj) => {
@@ -715,7 +719,7 @@ function camera(message, callback) {
             image_url: 'https://call2text.me/images/square/add_photo.png',
             subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
             buttons: [
-              new fb.Button({ type: 'web_url', title: 'CAMERA', url: `https://call2text.me/camera.html?senderid=${senderId}&eventid=${context.joinEventId}` }),
+              new fb.Button({ type: 'web_url', title: 'CAMERA', webview_height_ratio: 'full', messenger_extensions: true, url: `https://call2text.me/camera/${senderId}/${context.joinEventId}` }),
             ],
           }),
         ])
@@ -851,7 +855,9 @@ function checkInvtCode(message, callback) {
                       if (err) throw Error(`Error in findOne checkInvtCode4: ${err}`);
 
                       setNextPayload(senderId, 'SENDTO_EVENT', () => {
-                        sendMessage(`Bienvenu dans le groupe!!`);
+                        sendMessage('Bienvenu dans le groupe!!', () => {
+                          camera(message);
+                        });
                       });
                     });
                   });
@@ -1083,12 +1089,21 @@ app.post('/webhook', (req, res) => {
 });
 
 app.get('/datepicker', (req, res) => {
-  res.sendFile(path.join(__dirname + '/datepicker.html'));
+
 });
 
 app.post('/uploads', (req, res) => {
-  res.sendStatus(200);
-  console.log(req.body);
+  // res.sendStatus(200);
+  const transloadit = JSON.parse(req.body.transloadit);
+  console.log('transloadit: ', transloadit.fields);
+  res.sendFile(path.join(`${__dirname}/public/upload.html`));
+});
+
+app.get('/camera/:senderid/:eventid', (req, res) => {
+  res.render('camera', {
+    eventid: req.params.eventid,
+    senderid: req.params.senderid,
+  });
 });
 //------------------------------------------------------------------------------------
 // Start Server

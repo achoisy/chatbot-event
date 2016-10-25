@@ -1,0 +1,47 @@
+<div class="row section">
+
+    <form id="upload-form" class="col s12">
+
+      <input type="hidden" value= {{eventid}} name="eventid" />
+      <input type="hidden" value= {{senderid}} name="senderid" />
+
+        <div class="row">
+          <div id="image-holder" >
+              <img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />
+          </div>
+        </div>
+
+        <div class="row">
+            <div class="input-field col s12">
+                <textarea id="textarea1" class="materialize-textarea" length="120"></textarea>
+                <label for="textarea1">Commentaire:</label>
+            </div>
+        </div>
+
+        <div class="row file-field input-field">
+
+          <div class="col s5">
+            <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+              <span>Selection</span>
+              <input id="fileUpload" type="file"
+                name="image_upload"
+                accept="image/*" multiple>
+            </div>
+          </div>
+
+          <div class="col s7">
+            <button class="btn waves-effect waves-light light-blue darken-4 btn-fullblock" type="submit" name="action">Envoyer
+              <i class="material-icons right">send</i>
+            </button>
+          </div>
+
+        </div>
+    </form>
+
+</div>
+
+
+<script type="text/javascript" src="https://call2text.me/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="https://call2text.me/js/materialize.min.js"></script>
+<script src="//assets.transloadit.com/js/jquery.transloadit2-v2-latest.js"></script>
+<script type="text/javascript" src="https://call2text.me/js/camera.js"></script>
