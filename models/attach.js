@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const mongoosastic = require('mongoosastic');
+// const mongoosastic = require('mongoosastic');
 
 const Schema = mongoose.Schema;
 
@@ -8,21 +8,11 @@ const attachSchema = new Schema({
   eventid: { type: String, required: true },
   create_date: { type: Date, default: Date.now },
   content_type: { type: String },
-  content: String,
-  score: Number,
-  safeSearch: {
-    adult: Boolean,
-    medical: Boolean,
-    spoof: Boolean,
-    violence: Boolean,
-  },
-  faces: [Schema.Types.Mixed],
-  labels: [Schema.Types.Mixed],
-  landmarks: [Schema.Types.Mixed],
-  logos: [Schema.Types.Mixed],
-  text: [Schema.Types.Mixed],
+  full_url: { type: String },
+  thumbnail_url: { type: String },
+  message: { type: String, maxlength: 120 },
 });
 
-attachSchema.plugin(mongoosastic);
+// attachSchema.plugin(mongoosastic);
 
 module.exports = mongoose.model('Attach', attachSchema);

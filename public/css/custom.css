@@ -5,3 +5,14 @@
 .btn-fullblock {
   width: 100%;
 }
+
+#footer {
+   position:fixed;
+   left:0px;
+   bottom:0px;
+   width:100%;
+   background:#ffffff;
+   padding: 10px 10px 10px 10px;
+   box-shadow: 0px -5px 5px 0px #cfcfcf;
+   z-index:10;
+}

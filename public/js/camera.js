@@ -1,21 +1,3 @@
-
-function $_GET(param) {
-	var vars = {};
-	window.location.href.replace( location.hash, '' ).replace(
-		/[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
-		function( m, key, value ) { // callback
-			vars[key] = value !== undefined ? value : '';
-		}
-	);
-
-	if ( param ) {
-		return vars[param] ? vars[param] : null;
-	}
-	return vars;
-}
-
-
-
 $("#fileUpload").on('change', function () {
 
     //Get count of selected files
@@ -55,6 +37,9 @@ $("#fileUpload").on('change', function () {
 				$('<img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />').replaceAll("#image-holder");
     }
 });
+let message ='';
+
+
 
 // transloadit script !
 $(function() {
@@ -66,23 +51,27 @@ $(function() {
 	console.log('Eventid: ', eventid);
 	console.log('senderid: ', senderid);
 
-  $('#upload-form').transloadit({
-    wait: true,
-    params: {
-      auth: { key: "036bc9a0954011e68fa62b9952eb5f8d" },
-      template_id: "42a6d8f0954d11e69db1219efbd0fde2",
-      steps: {
-        store: {
-          path: storePath + '/${assembly.id}.${file.ext}',
-        },
-        storethumb: {
-          path: storePath + '/thumb/${assembly.id}.${file.ext}',
-        },
-      },
-      fields: {
-        eventid_pic: eventid,
-        senderid_pic: senderid,
-      },
-    },
-  });
+	$("button[name='action']").click(() => {
+		message = $("textarea#message").val().substr(0, 120);
+		$('#upload-form').transloadit({
+	    wait: true,
+	    params: {
+	      auth: { key: "036bc9a0954011e68fa62b9952eb5f8d" },
+	      template_id: "42a6d8f0954d11e69db1219efbd0fde2",
+	      steps: {
+	        store: {
+	          path: storePath + '/${assembly.id}.${file.ext}',
+	        },
+	        storethumb: {
+	          path: storePath + '/thumb/${assembly.id}.${file.ext}',
+	        },
+	      },
+	      fields: {
+	        eventid_pic: eventid,
+	        senderid_pic: senderid,
+					message_pic: message,
+	      },
+	    },
+	  });
+	});
 });

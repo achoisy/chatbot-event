@@ -1,45 +1,54 @@
-<div class="row section">
+<div class="container">
+    <div class="row section">
 
-    <form id="upload-form" class="col s12">
+        <form id="upload-form" action="https://call2text.me/uploads/" method="post" class="col s12">
 
-      <input type="hidden" value= {{eventid}} name="eventid" />
-      <input type="hidden" value= {{senderid}} name="senderid" />
+            <input type="hidden" value= {{eventid}} name="eventid" />
+            <input type="hidden" value= {{senderid}} name="senderid" />
 
-        <div class="row">
-          <div id="image-holder" >
-              <img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />
-          </div>
-        </div>
-
-        <div class="row">
-            <div class="input-field col s12">
-                <textarea id="textarea1" class="materialize-textarea" length="120"></textarea>
-                <label for="textarea1">Commentaire:</label>
+            <div class="row">
+                <div id="image-holder">
+                    <img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />
+                </div>
             </div>
-        </div>
 
-        <div class="row file-field input-field">
-
-          <div class="col s5">
-            <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
-              <span>Selection</span>
-              <input id="fileUpload" type="file"
-                name="image_upload"
-                accept="image/*" multiple>
+            <div class="row">
+                <div class="input-field col s12">
+                    <textarea id="message" class="materialize-textarea" length="120">this is some text</textarea>
+                    <label for="message">Commentaire:</label>
+                </div>
             </div>
-          </div>
 
-          <div class="col s7">
-            <button class="btn waves-effect waves-light light-blue darken-4 btn-fullblock" type="submit" name="action">Envoyer
+            <div class="row file-field input-field">
+
+                <div class="col s5">
+                    <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+                        <span>Selection</span>
+                        <input id="fileUpload" type="file" name="image_upload" accept="image/*" multiple>
+                    </div>
+                </div>
+
+                <div class="col s7">
+                    <button class="btn waves-effect waves-light light-blue darken-4 btn-fullblock" type="submit" name="action">Envoyer
               <i class="material-icons right">send</i>
             </button>
-          </div>
+                </div>
 
-        </div>
-    </form>
+            </div>
+        </form>
 
+    </div>
 </div>
 
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+</script>
 
 <script type="text/javascript" src="https://call2text.me/js/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="https://call2text.me/js/materialize.min.js"></script>

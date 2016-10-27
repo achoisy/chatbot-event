@@ -239,6 +239,23 @@ function location(msg) {
   });
 }
 
+function addAttach(transloadit, callback) {
+  const newAttach = new Attach({
+    userid: transloadit.fields.senderid_pic,
+    eventid: transloadit.fields.eventid_pic,
+    content_type: 'img',
+    full_url: transloadit.results.encode[0].ssl_url,
+    thumbnail_url: transloadit.results.thumb[0].ssl_url,
+    message: transloadit.fields.message_pic,
+  });
+  newAttach.save((err, attachObject) => {
+    if (err) {
+      console.log('Error: ', err);
+    } else {
+      callback(attachObject);
+    }
+  });
+}
 //--------------------------------------------------------------------------------------------
 // MOBILE Function
 //--------------------------------------------------------------------------------------------
@@ -1096,10 +1113,25 @@ app.post('/uploads', (req, res) => {
   // res.sendStatus(200);
   const transloadit = JSON.parse(req.body.transloadit);
   console.log('transloadit: ', transloadit.fields);
-  res.sendFile(path.join(`${__dirname}/public/upload.html`));
+
+  // Ajoute l'image dans la base attach
+  addAttach(transloadit, (attach) => {
+    // Affiche la page recap des image uploadées
+    res.render('upload', {
+      senderid: attach.userid,
+      eventid: attach.eventid,
+      senderImage: [
+        {
+          thumbnail_url: attach.thumbnail_url,
+          message: attach.message,
+        },
+      ],
+    });
+  });
 });
 
-app.get('/camera/:senderid/:eventid', (req, res) => {
+
+app.get('/camera/:senderid/:eventid/', (req, res) => {
   res.render('camera', {
     eventid: req.params.eventid,
     senderid: req.params.senderid,
