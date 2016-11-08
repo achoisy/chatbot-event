@@ -256,6 +256,18 @@ function addAttach(transloadit, callback) {
     }
   });
 }
+
+function eventGallery(eventId, callback) {
+  Attach.find({ eventid: eventId }, (err, attachObj) => {
+    if (err) throw Error(`Error in find eventGallery: ${err}`);
+
+    if (attachObj) {
+      callback(attachObj);
+    } else {
+      callback(false);
+    }
+  });
+}
 //--------------------------------------------------------------------------------------------
 // MOBILE Function
 //--------------------------------------------------------------------------------------------
@@ -739,6 +751,14 @@ function camera(message, callback) {
               new fb.Button({ type: 'web_url', title: 'CAMERA', webview_height_ratio: 'full', messenger_extensions: true, url: `https://call2text.me/camera/${senderId}/${context.joinEventId}` }),
             ],
           }),
+          new fb.Element({
+            title: 'Gallerie photo',
+            image_url: 'https://call2text.me/images/square/collection.png',
+            subtitle: `Gallerie de photo de l'évènement`,
+            buttons: [
+              new fb.Button({ type: 'web_url', title: 'GALLERIE', webview_height_ratio: 'full', messenger_extensions: true, url: `https://call2text.me/gallery/${context.joinEventId}` }),
+            ],
+          }),
         ])
       );
     }
@@ -1135,6 +1155,18 @@ app.get('/camera/:senderid/:eventid/', (req, res) => {
   res.render('camera', {
     eventid: req.params.eventid,
     senderid: req.params.senderid,
+  });
+});
+
+app.get('/gallery/:eventid/', (req, res) => {
+  eventGallery(req.params.eventid, (attachArray) => {
+    if (attachArray === false) {
+      sendMessage('Aucune photo dans la gallerie, désolé...');
+    } else {
+      res.render('gallery', {
+        eventImage: attachArray,
+      });
+    }
   });
 });
 //------------------------------------------------------------------------------------
