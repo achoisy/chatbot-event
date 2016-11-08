@@ -12,6 +12,7 @@ const speakeasy = require('speakeasy'); // Two factor authentication
 const path = require('path');
 const moment = require('moment');
 const exphbs = require('express-handlebars');
+const TransloaditClient = require('transloadit');
 
 // Model for mongoose schema
 const User = require('./models/users');
@@ -32,6 +33,12 @@ const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance()
 const mongodbUrl = 'mongodb://pizzabot:PizzaAlex!@capital.4.mongolayer.com:10159,capital.5.mongolayer.com:10159/pizzabot?replicaSet=set-56af54fbaaeb0dd3a2001606';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodbUrl);
+
+// transloadit connection
+const transloadit = new TransloaditClient({
+  authKey: process.env.TRANSLOADIT_AUTH_KEY,
+  authSecret: process.env.TRANSLOADIT_AUTH_SECRET,
+});
 
 // Express wrap
 const app = express();
@@ -266,6 +273,37 @@ function eventGallery(eventId, callback) {
     } else {
       callback(false);
     }
+  });
+}
+
+function saveImage(imageUrl, callback) {
+  const options = {
+    params: {
+      steps: {
+        import: {
+          robot: '/http/import',
+          url: imageUrl,
+        },
+        store: {
+          use: 'import',
+          robot: '/s3/store',
+          key: 'AKIAIZG3342WE3TJXLOQ',
+          secret: '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',
+          bucket: 'chatbot-event1',
+          path: '/coverimage/${assembly.id}.${file.ext}',
+        },
+      },
+    },
+  };
+
+  transloadit.createAssembly(options, (err, result) => {
+    if (err) {
+      throw new Error(err);
+    }
+    const imageExt = imageUrl.split('.').pop();
+
+    const pathToImage = `https://s3.amazonaws.com/chatbot-event1/coverimage/${result.assembly_id}.${imageExt}`;
+    callback(pathToImage);
   });
 }
 //--------------------------------------------------------------------------------------------
@@ -679,55 +717,58 @@ function validateEvent(message, callback) {
   User.findOne({ senderid: senderId }, (err, userObj) => {
     if ('context' in userObj) {
       const myContext = userObj.context;
-      const newEvent = new Event({
-        senderid: senderId,
-        admin_list: [senderId],
-        password: invitCode,
-        event_info: {
-          name: myContext.event_info.name,
-          description: myContext.event_info.description,
-          start_date: myContext.event_info.start_date,
-          end_date: myContext.event_info.end_date,
-          location: {
-            lat: myContext.event_info.location.lat,
-            long: myContext.event_info.location.long,
+      saveImage(myContext.welcome_msg.photo, (s3ImageUrl) => {
+        const newEvent = new Event({
+          senderid: senderId,
+          admin_list: [senderId],
+          password: invitCode,
+          event_info: {
+            name: myContext.event_info.name,
+            description: myContext.event_info.description,
+            start_date: myContext.event_info.start_date,
+            end_date: myContext.event_info.end_date,
+            location: {
+              lat: myContext.event_info.location.lat,
+              long: myContext.event_info.location.long,
+            },
           },
-        },
-        welcome_msg: {
-          photo: myContext.welcome_msg.photo,
-          video: myContext.welcome_msg.video,
-          texte: myContext.welcome_msg.texte,
-          audio: myContext.welcome_msg.audio,
-        },
-      });
-      newEvent.save((err, eventObject) => {
-        if (err) {
-          console.log('Error: ', err);
-        } else {
-          const newEventData = new EventData({
-            eventid: eventObject.id,
-            moderators: [senderId],
-            join_users: [senderId],
-          });
-          newEventData.save((err) => {
-            if (err) {
-              console.log('Error: ', err);
-            } else {
-              UserData.update({ userid: senderId }, { $push: { admin: eventObject.id } }, (err) => {
-                if (err) {
-                  console.log('Error: ', err);
-                } else {
-                  console.log('New event created and userData updated');
-                  messenger.send({ text: 'Votre évènement est enregistré' })
-                  .then((res) => {
-                    messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
-                    .then((res) => { callback(); });
+          welcome_msg: {
+            photo: s3ImageUrl,
+            video: myContext.welcome_msg.video,
+            texte: myContext.welcome_msg.texte,
+            audio: myContext.welcome_msg.audio,
+          },
+        });
+        newEvent.save((err, eventObject) => {
+          if (err) {
+            console.log('Error: ', err);
+          } else {
+            const newEventData = new EventData({
+              eventid: eventObject.id,
+              moderators: [senderId],
+              join_users: [senderId],
+            });
+            newEventData.save((err) => {
+              if (err) {
+                console.log('Error: ', err);
+              } else {
+                UserData.update({ userid: senderId },
+                  { $push: { admin: eventObject.id } }, (err) => {
+                    if (err) {
+                      console.log('Error: ', err);
+                    } else {
+                      console.log('New event created and userData updated');
+                      messenger.send({ text: 'Votre évènement est enregistré' })
+                      .then((res) => {
+                        messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
+                      .then((res) => { callback(); });
+                      });
+                    }
                   });
-                }
-              });
-            }
-          });
-        }
+              }
+            });
+          }
+        });
       });
     }
   });
@@ -1116,6 +1157,7 @@ app.get('/removethread', (req, res) => {
 // Check connection
 app.get('/checkserver', (req, res) => {
   console.log('Server connexion OK !');
+  saveImage('https://s3.amazonaws.com/chatbot-event1/coverimage/15045290_10158021266920508_302717168_o.jpg');
   res.sendStatus(200);
 });
 
@@ -1131,11 +1173,11 @@ app.get('/datepicker', (req, res) => {
 
 app.post('/uploads', (req, res) => {
   // res.sendStatus(200);
-  const transloadit = JSON.parse(req.body.transloadit);
+  const transloaditResponse = JSON.parse(req.body.transloadit);
   console.log('transloadit: ', transloadit.fields);
 
   // Ajoute l'image dans la base attach
-  addAttach(transloadit, (attach) => {
+  addAttach(transloaditResponse, (attach) => {
     // Affiche la page recap des image uploadées
     res.render('upload', {
       senderid: attach.userid,
