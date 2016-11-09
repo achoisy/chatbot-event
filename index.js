@@ -796,33 +796,47 @@ function camera(message, callback) {
   });
 }
 
-function introMessage(eventId, callback, welcome = false) {
+function introMessage(eventId, callback) {
   Event.findOne({ _id: eventId }, (err, eventObject) => {
     if (err) throw Error(`Error in findOne introMessage: ${err}`);
 
     if (eventObject) {
-      if (welcome === true) {
-        console.log('Send Intro Message');
-        sendMessage(`Bienvenu dans l'évenement ${eventObject.event_info.name}`, () => {
-          messenger.send(new fb.Image({ url: eventObject.welcome_msg.photo }))
-          .then(() => {
-            messenger.send(new fb.Video({ url: eventObject.welcome_msg.video }))
-            .then(() => {
-              messenger.send(new fb.Audio({ url: eventObject.welcome_msg.audio }))
-              .then(() => {
-                messenger.send({ text: eventObject.welcome_msg.texte })
-                .then(() => {
-                  callback();
-                });
-              });
-            });
-          });
-        });
-      } else {
-        sendMessage(`Bienvenu dans l'évenement ${eventObject.event_info.name}`, () => {
-          callback();
-        });
+      const recapEventText = `Bienvenu dans l'évenement\n ${eventObject.event_info.name}`;
+      const buttonsArray = [];
+      if (eventObject.welcome_msg.video !== '') {
+        buttonsArray.push(
+          new fb.Button({
+            type: 'web_url',
+            title: 'Video',
+            webview_height_ratio: 'tall',
+            //messenger_extensions: true,
+            url: eventObject.welcome_msg.video,
+          })
+        );
       }
+      messenger.send({ text: recapEventText }).then((res) => {
+        console.log('Debug: ', JSON.stringify(res));
+        messenger.send(
+          new fb.GenericTemplate([
+            new fb.Element({
+              title: eventObject.event_info.name,
+              item_url: eventObject.welcome_msg.photo,
+              image_url: eventObject.welcome_msg.photo,
+              subtitle: eventObject.welcome_msg.texte,
+              buttons: buttonsArray,
+            }),
+          ])
+        ).then(() => {
+          if (eventObject.welcome_msg.audio !== '') {
+            messenger.send(new fb.Audio({ url: eventObject.welcome_msg.audio }))
+            .then(() => {
+              callback();
+            });
+          } else {
+            callback();
+          }
+        });
+      });
     }
   });
 }
@@ -957,7 +971,7 @@ function checkInvtCode(message, callback) {
                       setNextPayload(senderId, 'SENDTO_EVENT', () => {
                         introMessage(userObject.context.joinEventId, () => {
                           camera(message);
-                        }, true);
+                        });
                       });
                     });
                   });
