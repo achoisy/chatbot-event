@@ -1105,7 +1105,7 @@ function actionCall(actionPayload, message) {
         });
       },
       CHECK_INVITATION_CODE: () => {
-        userMobileCheck(message, () => {
+        userCheck(message, () => {
           checkInvtCode(message);
         });
       },
