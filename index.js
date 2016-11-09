@@ -536,7 +536,7 @@ function choiceOrganis() {
   });
 }
 
-function choiceAddEventMessage () {
+function choiceAddEventMessage() {
   const addEventqr1 = new fb.QuickReply({
     title: 'Ajouter',
     payload: 'ADD_EVENT',
@@ -569,8 +569,7 @@ function createNewEvent(message, callback) {
       if (userObj.context) {
         context = userObj.context;
       }
-      const Qdate1 = 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH\n ex: 29/12/2016 09H30';
-      const Qdate2 = 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH\n ex: 29/12/2016 22H30';
+
       // Start context filling
       if ('event_info' in context && 'welcome_msg' in context) {
         console.log(`Context: ${JSON.stringify(context)}`);
@@ -582,42 +581,8 @@ function createNewEvent(message, callback) {
         } else if (!context.event_info.description) {
           context.event_info.description = message.message.text;
           updateContext(senderId, context, () => {
-            sendMessage(Qdate1);
+            choiceAddEventMessage();
           });
-        } else if (!context.event_info.start_date) {
-          const startDate = moment(message.message.text, 'DD-MM-YYYY HH:mm');
-          if (startDate.isValid()) {
-            context.event_info.start_date = startDate.toDate();
-            updateContext(senderId, context, () => {
-              sendMessage(Qdate2);
-            });
-          } else { // Startdate is not valide so ask again
-            sendMessage(Qdate1);
-          }
-        } else if (!context.event_info.end_date) {
-          const startEnd = moment(message.message.text, 'DD-MM-YYYY HH:mm');
-          if (startEnd.isValid()) {
-            context.event_info.end_date = startEnd.toDate();
-            updateContext(senderId, context, () => {
-              location('Ou se déroule votre évènement ?');
-            });
-          } else { // EndDate is not valide so ask again
-            sendMessage(Qdate2);
-          }
-        } else if (!context.event_info.location) {
-          if ('attachments' in message.message) {
-            const attach = message.message.attachments;
-            if ('type'in attach[0] && attach[0].type === 'location') {
-              context.event_info.location = attach[0].payload.coordinates;
-              updateContext(senderId, context, () => {
-                choiceAddEventMessage();
-              });
-            } else {
-              location('Ou se déroule votre évènement ?');
-            }
-          } else {
-            location('Ou se déroule votre évènement ?');
-          }
         } else if ('quick_reply' in message.message) {
           // DO NOTHING !!! :)
         } else {
@@ -683,8 +648,6 @@ function recapEvent(message, callback) {
       let recapEventText = 'Voici le récapitulatif de votre nouvel évènement:\n';
       recapEventText += `   • Nom: ${context.event_info.name}\n`;
       recapEventText += `   • Description: ${context.event_info.description}\n`;
-      recapEventText += `   • Du: ${moment(context.event_info.start_date).format('LLLL')} `;
-      recapEventText += `au ${moment(context.event_info.end_date).format('LLLL')}\n`;
 
       const buttonsArray = [];
       if (userObj.context.welcome_msg.video !== '') {
@@ -863,7 +826,6 @@ function introMessage(eventId, callback, welcome = false) {
     }
   });
 }
-
 
 function searchEvent(message, callback) {
   if ('text' in message.message) {
