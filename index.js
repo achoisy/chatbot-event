@@ -484,6 +484,33 @@ function userMobileCheck(message, callback) {
   });
 }
 
+function userCheck(message, callback) {
+  const senderId = message.sender.id;
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+    if (userObj) { // User exist
+      callback(message);
+    } else {  // User n'existe pas
+      messenger.getUser().then((user) => {
+        const newUser = new User({
+          senderid: senderId,
+          user_profile: user,
+          next_payload: message.message.quick_reply.payload,
+          context: { newuser: true },
+        });
+        newUser.save((err, userObject) => {
+          if (err) throw Error(`Error in userCheck: ${err}`);
+
+          console.log('New user created');
+          sendMessage('Ceci est votre 1er connexion ! Bienvenu.', () => {
+            callback(message);
+          });
+        });
+      });
+    }
+  });
+}
 //--------------------------------------------------------------------------------------------
 // ORGANISATION Function
 //--------------------------------------------------------------------------------------------
@@ -969,7 +996,7 @@ function actionCall(actionPayload, message) {
 
     const actions = {
       PARTI_EVENEMENT: () => { // Join event as a guest
-        userMobileCheck(message, () => {
+        userCheck(message, () => {
           setNextPayload(senderId, 'SEARCH_EVENT', () => {
             sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
           });
@@ -1033,17 +1060,17 @@ function actionCall(actionPayload, message) {
         });
       },
       SEARCH_EVENT: () => {
-        userMobileCheck(message, () => {
+        userCheck(message, () => {
           searchEvent(message);
         });
       },
       JOIN_EVENT: () => {
-        userMobileCheck(message, () => {
+        userCheck(message, () => {
           joinningEvent(message);
         });
       },
       SENDTO_EVENT: () => {
-        userMobileCheck(message, () => {
+        userCheck(message, () => {
           // TODO: Reception des attachements
           camera(message);
         });
@@ -1157,7 +1184,6 @@ app.get('/removethread', (req, res) => {
 // Check connection
 app.get('/checkserver', (req, res) => {
   console.log('Server connexion OK !');
-  saveImage('https://s3.amazonaws.com/chatbot-event1/coverimage/15045290_10158021266920508_302717168_o.jpg');
   res.sendStatus(200);
 });
 
