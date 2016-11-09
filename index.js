@@ -767,35 +767,49 @@ function validateEvent(message, callback) {
 //--------------------------------------------------------------------------------------------
 // PARTICIPATION Function
 //--------------------------------------------------------------------------------------------
+
 function camera(message, callback) {
   const senderId = message.sender.id;
   getContext(senderId, (context) => {
-    console.log('test11', JSON.stringify(context));
     if (context && 'joinEventId' in context) {
-      messenger.send(
-        new fb.GenericTemplate([
-          new fb.Element({
-            title: 'Ajouter une photo',
-            image_url: 'https://call2text.me/images/square/add_photo.png',
-            subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
-            buttons: [
-              new fb.Button({ type: 'web_url', title: 'CAMERA', webview_height_ratio: 'full', messenger_extensions: true, url: `https://call2text.me/camera/${senderId}/${context.joinEventId}` }),
-            ],
-          }),
-          new fb.Element({
-            title: 'Gallerie photo',
-            image_url: 'https://call2text.me/images/square/collection.png',
-            subtitle: `Gallerie de photo de l'évènement`,
-            buttons: [
-              new fb.Button({ type: 'web_url', title: 'GALLERIE', webview_height_ratio: 'full', messenger_extensions: true, url: `https://call2text.me/gallery/${context.joinEventId}` }),
-            ],
-          }),
-        ])
-      );
+      messenger.send({
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'list',
+            top_element_style: 'compact',
+            elements: [{
+              title: 'Ajouter une photo',
+              image_url: 'https://call2text.me/images/square/add_photo.png',
+              subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
+              default_action: {
+                type: 'web_url',
+                url: `https://call2text.me/camera/${senderId}/${context.joinEventId}`,
+                messenger_extensions: true,
+                webview_height_ratio: 'full',
+              },
+            }, {
+              title: 'Gallerie photo',
+              image_url: 'https://call2text.me/images/square/collection.png',
+              subtitle: `Gallerie de photo de l'évènement`,
+              default_action: {
+                type: 'web_url',
+                url: `https://call2text.me/gallery/${context.joinEventId}`,
+                messenger_extensions: true,
+                webview_height_ratio: 'full',
+              },
+            }],
+            buttons: [{
+              title: 'View More',
+              type: 'postback',
+              payload: 'payload',
+            }],
+          },
+        },
+      });
     }
   });
 }
-
 function introMessage(eventId, callback) {
   Event.findOne({ _id: eventId }, (err, eventObject) => {
     if (err) throw Error(`Error in findOne introMessage: ${err}`);
@@ -1079,7 +1093,7 @@ function actionCall(actionPayload, message) {
       },
       SENDTO_EVENT: () => {
         userCheck(message, () => {
-          // TODO: Reception des attachements
+          // TODO: Reception des messages text
           camera(message);
         });
       },
