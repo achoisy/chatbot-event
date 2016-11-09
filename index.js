@@ -833,6 +833,38 @@ function camera(message, callback) {
   });
 }
 
+function introMessage(eventId, callback, welcome = false) {
+  Event.findOne({ _id: eventId }, (err, eventObject) => {
+    if (err) throw Error(`Error in findOne introMessage: ${err}`);
+
+    if (eventObject) {
+      if (welcome === true) {
+        console.log('Send Intro Message');
+        sendMessage(`Bienvenu dans l'évenement ${eventObject.event_info.name}`, () => {
+          messenger.send(new fb.Image({ url: eventObject.welcome_msg.photo }))
+          .then(() => {
+            messenger.send(new fb.Video({ url: eventObject.welcome_msg.video }))
+            .then(() => {
+              messenger.send(new fb.Audio({ url: eventObject.welcome_msg.audio }))
+              .then(() => {
+                messenger.send({ text: eventObject.welcome_msg.texte })
+                .then(() => {
+                  callback();
+                });
+              });
+            });
+          });
+        });
+      } else {
+        sendMessage(`Bienvenu dans l'évenement ${eventObject.event_info.name}`, () => {
+          callback();
+        });
+      }
+    }
+  });
+}
+
+
 function searchEvent(message, callback) {
   if ('text' in message.message) {
     const searchText = message.message.text;
@@ -915,8 +947,9 @@ function joinningEvent(message, callback) {
             if (err) throw Error(`Error in update joinningEvent: ${err}`);
 
             setNextPayload(senderId, 'SENDTO_EVENT', () => {
-              sendMessage(`Vous etes dans le groupe!!`);
-              camera(message);
+              introMessage(eventId, () => {
+                camera(message);
+              });
             });
           });
       } else {
@@ -960,9 +993,9 @@ function checkInvtCode(message, callback) {
                       if (err) throw Error(`Error in findOne checkInvtCode4: ${err}`);
 
                       setNextPayload(senderId, 'SENDTO_EVENT', () => {
-                        sendMessage('Bienvenu dans le groupe!!', () => {
+                        introMessage(userObject.context.joinEventId, () => {
                           camera(message);
-                        });
+                        }, true);
                       });
                     });
                   });
@@ -984,7 +1017,6 @@ function checkInvtCode(message, callback) {
     sendMessage("Taper le code d'invitation");
   }
 }
-
 
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
