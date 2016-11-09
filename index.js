@@ -246,14 +246,14 @@ function location(msg) {
   });
 }
 
-function addAttach(transloadit, callback) {
+function addAttach(transload, callback) {
   const newAttach = new Attach({
-    userid: transloadit.fields.senderid_pic,
-    eventid: transloadit.fields.eventid_pic,
+    userid: transload.fields.senderid_pic,
+    eventid: transload.fields.eventid_pic,
     content_type: 'img',
-    full_url: transloadit.results.encode[0].ssl_url,
-    thumbnail_url: transloadit.results.thumb[0].ssl_url,
-    message: transloadit.fields.message_pic,
+    full_url: transload.results.encode[0].ssl_url,
+    thumbnail_url: transload.results.thumb[0].ssl_url,
+    message: transload.fields.message_pic,
   });
   newAttach.save((err, attachObject) => {
     if (err) {
