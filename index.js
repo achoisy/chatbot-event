@@ -30,7 +30,7 @@ const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 // Compose.io Mongo url
-const mongodbUrl = 'mongodb://pizzabot:PizzaAlex!@capital.4.mongolayer.com:10159,capital.5.mongolayer.com:10159/pizzabot?replicaSet=set-56af54fbaaeb0dd3a2001606';
+const mongodbUrl = process.env.MONGODB_CONNECT;
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodbUrl);
 
