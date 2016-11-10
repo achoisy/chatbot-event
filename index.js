@@ -7,12 +7,19 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fb = require('fbmessenger');
 const mongoose = require('mongoose');
-const User = require('./models/users'); // Model for mongoose schema validation USERS
-const Event = require('./models/events');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const speakeasy = require('speakeasy'); // Two factor authentication
 const path = require('path');
 const moment = require('moment');
+const exphbs = require('express-handlebars');
+const TransloaditClient = require('transloadit');
+
+// Model for mongoose schema
+const User = require('./models/users');
+const Event = require('./models/events');
+const EventData = require('./models/eventdata');
+const UserData = require('./models/userdata');
+const Attach = require('./models/attach');
 
 moment.locale('fr'); // 'fr'
 
@@ -27,11 +34,21 @@ const mongodbUrl = 'mongodb://pizzabot:PizzaAlex!@capital.4.mongolayer.com:10159
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodbUrl);
 
+// transloadit connection
+const transloadit = new TransloaditClient({
+  authKey: process.env.TRANSLOADIT_AUTH_KEY,
+  authSecret: process.env.TRANSLOADIT_AUTH_SECRET,
+});
+
 // Express wrap
 const app = express();
 
+app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.engine('handlebars', exphbs({ defaultLayout: 'main' }));
+app.set('view engine', 'handlebars');
 
 // Configuration du webhook facebook
 const messenger = new fb.Messenger({
@@ -84,7 +101,7 @@ function botInit() {
   const menu_start = new fb.PersistentMenuItem({
     type: 'postback',
     title: 'Demarrer',
-    payload: 'start',
+    payload: 'DEFAULT',
   });
 
   const menu_blog = new fb.PersistentMenuItem({
@@ -134,31 +151,43 @@ function threadBotRemove() {
 //--------------------------------------------------------------------------------------------
 // General Function
 //--------------------------------------------------------------------------------------------
+
 function demarrer() {
   messenger.send(
     new fb.GenericTemplate([
-      new fb.Element({
-        title: 'Organiser un évènement',
-        // item_url: 'https://call2text.me/images/new_event.png',
-        image_url: 'https://call2text.me/images/square/new_event.png',
-        subtitle: "Si vous organisez ou avez les droits d'administration d'un évènement",
-      }),
       new fb.Element({
         title: 'Participer à un évènement',
         // item_url: 'https://call2text.me/images/edit_event.png',
         image_url: 'https://call2text.me/images/square/join_event.png',
         subtitle: "Si Vous êtes invités à participer à un évènement",
       }),
+      new fb.Element({
+        title: 'Organiser un évènement',
+        // item_url: 'https://call2text.me/images/new_event.png',
+        image_url: 'https://call2text.me/images/square/new_event.png',
+        subtitle: "Si vous organisez ou avez les droits d'administration d'un évènement",
+      }),
     ])
   ).then((res) => {
     const demqr1 = new fb.QuickReply({ title: `J'organise`, payload: 'ORGAN_EVENEMENT', image_url: 'https://call2text.me/images/circle/new_event.png' });
     // const qr2 = new fb.QuickReply({ title: 'MODIFIER', payload: 'MODIF_EVENEMENT'});
     const demqr2 = new fb.QuickReply({ title: 'Je participe', payload: 'PARTI_EVENEMENT', image_url: 'https://call2text.me/images/circle/join_event.png' });
-    const demqrs = new fb.QuickReplies([demqr1, demqr2]);
+    const demqrs = new fb.QuickReplies([demqr2, demqr1]);
     messenger.send(Object.assign(
         { text: 'Faites votre choix:' },
         demqrs
-      )).then((res) => { console.log('QuickReply: ', res); });
+      ));
+  });
+}
+
+function sendMessage(msgText, callback) {
+  messenger.send({ text: msgText }).then((res) => {
+    console.log(`sending Message: ${JSON.stringify(res)}`);
+    if (typeof callback === 'function') {
+      callback();
+    }
+  }).catch((err) => {
+    console.error(`Erreur: ${err}`);
   });
 }
 
@@ -169,7 +198,9 @@ function setNextPayload(senderId, nextPayload, callback) {
       if (err) throw Error(`Error in findOne senderId: ${err}`);
 
       if (userObj) { // User exist
-        console.log(`Set next payload on user profil: ${nextPayload} `);
+        console.log(`Next payload for senderId ${senderId} : ${nextPayload} `);
+      } else {
+        console.log('User not found ! SenderId: ', senderId);
       }
       callback();
     });
@@ -181,9 +212,27 @@ function updateContext(senderId, conText, callback) {
     (err, userObj) => {
       if (err) throw Error(`Error in findOneAndUpdate updateContext: ${err}`);
 
-      callback();
+      if (typeof callback === 'function') {
+        callback();
+      }
     }
   );
+}
+
+function getContext(senderId, callback) {
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne getContext: ${err}`);
+
+    if (typeof callback === 'function') {
+      if (userObj && 'context' in userObj) {
+        const context = userObj.context;
+        console.log('Context: ', JSON.stringify(context));
+        callback(userObj.context);
+      } else {
+        callback();
+      }
+    }
+  });
 }
 
 function location(msg) {
@@ -194,6 +243,65 @@ function location(msg) {
 
   messenger.send(payload).then((res) => {
     console.log('Debug: ', res);
+  });
+}
+
+function addAttach(transload, callback) {
+  const newAttach = new Attach({
+    userid: transload.fields.senderid_pic,
+    eventid: transload.fields.eventid_pic,
+    content_type: 'img',
+    full_url: transload.results.encode[0].ssl_url,
+    thumbnail_url: transload.results.thumb[0].ssl_url,
+    message: transload.fields.message_pic,
+  });
+  newAttach.save((err, attachObject) => {
+    if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+    callback(attachObject);
+  });
+}
+
+function eventGallery(eventId, callback) {
+  Attach.find({ eventid: eventId }, (err, attachObj) => {
+    if (err) throw Error(`Error in find eventGallery: ${err}`);
+
+    if (attachObj) {
+      callback(attachObj);
+    } else {
+      callback(false);
+    }
+  });
+}
+
+function saveImage(imageUrl, callback) {
+  const options = {
+    params: {
+      steps: {
+        import: {
+          robot: '/http/import',
+          url: imageUrl,
+        },
+        store: {
+          use: 'import',
+          robot: '/s3/store',
+          key: 'AKIAIZG3342WE3TJXLOQ',
+          secret: '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',
+          bucket: 'chatbot-event1',
+          path: '/coverimage/${assembly.id}.${file.ext}',
+        },
+      },
+    },
+  };
+
+  transloadit.createAssembly(options, (err, result) => {
+    if (err) {
+      throw Error(err);
+    }
+    const imageExt = imageUrl.split('.').pop();
+
+    const pathToImage = `https://s3.amazonaws.com/chatbot-event1/coverimage/${result.assembly_id}.${imageExt}`;
+    callback(pathToImage);
   });
 }
 //--------------------------------------------------------------------------------------------
@@ -207,10 +315,7 @@ function mobileRequest(senderId) {
     (err, userObj) => {
       if (err) throw Error(`Error in findOneAndUpdate mobileRequest: ${err}`);
 
-      messenger.send({ text: 'Tapez votre numero de Mobile (ex: 0696123456).' })
-      .catch((err) => {
-        console.error('Erreur userMobileCheck!');
-      });
+      sendMessage('Tapez votre numero de Mobile (ex: 0696123456).');
     });
 }
 
@@ -218,7 +323,7 @@ function confirmMobileNumber(mobileNumber) {
   const conqr1 = new fb.QuickReply({ title: 'Oui', payload: `CONF_MOBILE#${phoneUtil.format(mobileNumber, PNF.E164)}`, image_url: 'https://call2text.me/images/circle/yes.png' });
   const conqr2 = new fb.QuickReply({ title: 'Non', payload: 'MOBILE_REQUEST', image_url: 'https://call2text.me/images/circle/no.png' });
   const conqrs = new fb.QuickReplies([conqr1, conqr2]);
-  console.log(conqrs);
+
   messenger.send(Object.assign(
       { text: `Votre numéro de mobile est bien le ${phoneUtil.format(mobileNumber, PNF.NATIONAL)}` },
       conqrs
@@ -239,7 +344,7 @@ function checkIfReceivedSMS(mobileNumber) {
 function addMobileToUser(message, callback) {
   const senderId = message.sender.id;
   const mobileNumber = message.message.quick_reply.payload.split('#', 2)[1];
-  console.log(`Mobile number is: ${mobileNumber} `);
+  console.log(`SenderId ${senderId} Mobile number: ${mobileNumber} `);
   User.findOneAndUpdate(
     { senderid: senderId },
     { $set: { 'user_mobile.mobile_number': mobileNumber, 'user_mobile.verified': false, 'user_mobile.verif_proc': false } },
@@ -250,7 +355,7 @@ function addMobileToUser(message, callback) {
 }
 
 function validateUser(senderId) {
-  console.log(`Mobile number validate for userid: ${senderId} `);
+  console.log(`Mobile number validate for SenderId: ${senderId} `);
   User.findOneAndUpdate(
     { senderid: senderId },
     { $set: { 'user_mobile.verified': true } },
@@ -272,26 +377,22 @@ function smsCodeSend(senderId, mobileNumber) {
     from: '+12163524440',
     body: smsText,
   }, (err, message) => {
-    console.log('Twilio Message :', message.sid);
+    console.log(`${mobileNumber} Twilio Message : ${message.sid}`);
     // console.log('Fake twilio message');
     // Save Code in user profile and set verif_proc:true
     User.findOneAndUpdate({ senderid: senderId },
       { $set: { 'user_mobile.verif_proc': true } },
       (err, userObj) => {
         if (err) throw Error(`Error in findOneAndUpdate smsCodeSend: ${err}`);
-        console.log('findone !!!!');
+
         // request invitation code to user
-        messenger.send({ text: 'Tapez le code invitation reçu par SMS' })
-        .catch((err) => {
-          console.error(`Erreur smsCodeSend! ${err}`);
-        });
+        sendMessage('Tapez le code invitation reçu par SMS');
       });
   });
 }
 
 function userMobileCheck(message, callback) {
   const senderId = message.sender.id;
-  console.log("Entering userMobileCheck");
   User.findOne({ senderid: senderId }, (err, userObj) => {
     if (err) throw Error(`Error in findOne senderId: ${err}`);
 
@@ -305,14 +406,12 @@ function userMobileCheck(message, callback) {
         } catch (e) {
           console.log('phoneUtil error: ', e);
         }
-        console.log(`numberValid: ${numberValid}`);
         if (numberValid) {
           console.log("mobile getNumberType: " + phoneUtil.getNumberType(mobileNumber));
           if (phoneUtil.getNumberType(mobileNumber) !== 1) {
             // Numero n est pas un num mobile
-            messenger.send({ text: `Désolé, mais le numéro ${phoneUtil.format(mobileNumber, PNF.NATIONAL)} n'est pas un numéro de mobile` })
-            .then((res) => {
-              console.log('res: ', res);
+            const userMsg = `Désolé, mais le numéro ${phoneUtil.format(mobileNumber, PNF.NATIONAL)} n'est pas un numéro de mobile`;
+            sendMessage(userMsg, () => {
               mobileRequest(senderId);
             });
           } else { // Numero mobile valide
@@ -320,67 +419,96 @@ function userMobileCheck(message, callback) {
           }
         } else {
           // Numero non valide
-          messenger.send({ text: `Désolé, mais le numéro n'est pas valide` })
-          .then((res) => {
-            console.log('res: ', res);
+          sendMessage(`Désolé, mais le numéro n'est pas valide`, () => {
             mobileRequest(senderId);
           });
         }
-      } else { // User à deja un numero de mobile
-        // Send SMS Verification
-        if (!userObj.user_mobile.verified) { // User mobile number is not verified
-          if (!userObj.user_mobile.verif_proc) { // User need a verif code !
-            smsCodeSend(senderId, userObj.user_mobile.mobile_number);
-          } else if ('text' in message.message) { // User should be verifying code here or maybe he have not received the code yet
-            const codeToVerify = message.message.text;
-            const checkCode = speakeasy.totp.verify({
-              secret: process.env.SPEAKEASY_SECRET_TOKEN.base32 + senderId,
-              encoding: 'base32',
-              token: codeToVerify,
-              step: 120,
-              window: 10,
+      } else if (!userObj.user_mobile.verified) { // User mobile number is not verified
+        if (!userObj.user_mobile.verif_proc) { // User need a verif code !
+          smsCodeSend(senderId, userObj.user_mobile.mobile_number);
+        } else if ('text' in message.message) { // User should be verifying code here or maybe he have not received the code yet
+          const codeToVerify = message.message.text;
+          const checkCode = speakeasy.totp.verify({
+            secret: process.env.SPEAKEASY_SECRET_TOKEN.base32 + senderId,
+            encoding: 'base32',
+            token: codeToVerify,
+            step: 120,
+            window: 10,
+          });
+          if (!checkCode) { // Code SMS incorrecte
+            sendMessage(`Désolé, mais le code d'invitation n'est pas valide`, () => {
+              checkIfReceivedSMS(userObj.user_mobile.mobile_number);
             });
-            if (!checkCode) { // Code SMS incorrecte
-              messenger.send({ text: `Désolé, mais le code d'invitation n'est pas valide` })
-              .then((res) => {
-                console.log("send checkIfReceivedSMS");
-                checkIfReceivedSMS(userObj.user_mobile.mobile_number);
-              });
-            } else { // Code SMS OK. rediriger vers le service demandé
-              validateUser(senderId);
-              callback(message);
-            }
-          } else { // User should enter SMS code again
-            messenger.send({ text: 'Tapez le code invitation reçu par SMS' })
-            .catch((err) => {
-              console.error(`Erreur smsCodeSend! ${err}`);
-            });
+          } else { // Code SMS OK. rediriger vers le service demandé
+            validateUser(senderId);
+            callback(message);
           }
-        } else { // User should continu to service requested
-          console.log('Suite de la validation du numero !!');
-          callback(message);
+        } else { // User should enter SMS code again
+          sendMessage('Tapez le code invitation reçu par SMS');
         }
+      } else { // User should continu to service requested
+        console.log(`userMobileCheck OK for senderId: ${senderId}`);
+        callback(message);
       }
     } else {  // User n'existe pas
       messenger.getUser().then((user) => {
         const newUser = new User({
           senderid: senderId,
           user_profile: user,
-          last_payload: '',
           next_payload: message.message.quick_reply.payload,
-          context: {},
+          context: { newuser: true },
         });
-        newUser.save()
-        .then(messenger.send({ text: 'Ceci est votre 1er connexion !' }))
-        .then((res) => {
-          console.log('res: ', res);
-          mobileRequest(senderId);
+        newUser.save((err, userObject) => {
+          if (err) {
+            console.log('Error: ', err);
+          } else {
+            const newUserData = new UserData({
+              userid: userObject.id,
+            });
+            newUserData.save((err) => {
+              if (err) {
+                console.log('Error: ', err);
+              } else {
+                console.log(`New user admin created senderId: ${senderId}`);
+                sendMessage('Ceci est votre 1er connexion !', () => {
+                  mobileRequest(senderId);
+                });
+              }
+            });
+          }
         });
       });
     }
   });
 }
 
+function userCheck(message, callback) {
+  const senderId = message.sender.id;
+  User.findOne({ senderid: senderId }, (err, userObj) => {
+    if (err) throw Error(`Error in findOne senderId: ${err}`);
+
+    if (userObj) { // User exist
+      callback(message);
+    } else {  // User n'existe pas
+      messenger.getUser().then((user) => {
+        const newUser = new User({
+          senderid: senderId,
+          user_profile: user,
+          next_payload: message.message.quick_reply.payload,
+          context: { newuser: true },
+        });
+        newUser.save((err, userObject) => {
+          if (err) throw Error(`Error in userCheck: ${err}`);
+
+          console.log(`New user regular created senderId: ${senderId}`);
+          sendMessage('Ceci est votre 1er connexion ! Bienvenu.', () => {
+            callback(message);
+          });
+        });
+      });
+    }
+  });
+}
 //--------------------------------------------------------------------------------------------
 // ORGANISATION Function
 //--------------------------------------------------------------------------------------------
@@ -393,26 +521,20 @@ function choiceOrganis() {
         image_url: 'https://call2text.me/images/square/add_event.png',
         subtitle: "Créez votre nouvelle évènement et centralisez les photos, vidéos et commentaires de vos évènements",
       }),
-      new fb.Element({
-        title: 'Modifier évènement',
-        // item_url: 'https://call2text.me/images/edit_event.png',
-        image_url: 'https://call2text.me/images/square/edit_event.png',
-        subtitle: "Modification d'un évènement déjà créé dont vous êtes l'administrateur.",
-      }),
     ])
   ).then((res) => {
     const eventqr1 = new fb.QuickReply({ title: 'Créer évènement', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/add_event.png' });
-    const eventqr2 = new fb.QuickReply({ title: 'Modifier évènement', payload: 'EDIT_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
+    const eventqr2 = new fb.QuickReply({ title: 'Annuler', payload: 'DEFAULT', image_url: 'https://call2text.me/images/circle/cancel.png' });
     const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
-    console.log(eventqrs);
+
     messenger.send(Object.assign(
         { text: 'Faites votre choix:' },
         eventqrs
-      )).then((res) => { console.log('QuickReply: ', res); });
+      ));
   });
 }
 
-function choiceAddEventMessage () {
+function choiceAddEventMessage() {
   const addEventqr1 = new fb.QuickReply({
     title: 'Ajouter',
     payload: 'ADD_EVENT',
@@ -427,10 +549,8 @@ function choiceAddEventMessage () {
   messenger.send(Object.assign(
     { text: 'Vous pouvez ajouter un message de bienvenu: text, image, photo et video' },
     addEventqr
-  )).then((res) => {
-    console.log('Debug: ', JSON.stringify(res));
-  }).catch((err) => {
-    console.log('Error choiceAddEventMessage', err);
+  )).catch((err) => {
+    if (err) throw Error('Error choiceAddEventMessage', err);
   });
 }
 
@@ -446,76 +566,18 @@ function createNewEvent(message, callback) {
         context = userObj.context;
       }
 
+      // Start context filling
       if ('event_info' in context && 'welcome_msg' in context) {
-        console.log(`Context: ${JSON.stringify(context)}`);
         if (!context.event_info.name) {
           context.event_info.name = message.message.text;
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Donner une brève description de votre évènement' });
+            sendMessage('Donner une brève description de votre évènement');
           });
         } else if (!context.event_info.description) {
           context.event_info.description = message.message.text;
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
+            choiceAddEventMessage();
           });
-        } else if (!context.event_info.start_date) {
-          const startDate = moment(message.message.text, 'DD-MM-YYYY HH:mm');
-          if (startDate.isValid()) {
-            context.event_info.start_date = startDate.toDate();
-            updateContext(senderId, context, () => {
-              messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-              .then((res) => {
-                console.log('Debug: ', res);
-              })
-              .catch((err) => {
-                console.error(`Erreur updateContext ! ${err}`);
-              });
-            });
-          } else {
-            messenger.send({ text: 'Date de debut de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 09H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
-          }
-        } else if (!context.event_info.end_date) {
-          const startEnd = moment(message.message.text, 'DD-MM-YYYY HH:mm');
-          if (startEnd.isValid()) {
-            context.event_info.end_date = startEnd.toDate();
-            updateContext(senderId, context, () => {
-              location('Ou se déroule votre évènement ?');
-            });
-          } else {
-            messenger.send({ text: 'Date de fin de votre évènement au format JJ/MM/AAAA HH:HH ex: 29/12/2016 22H30' })
-            .then((res) => {
-              console.log('Debug: ', res);
-            })
-            .catch((err) => {
-              console.error(`Erreur updateContext ! ${err}`);
-            });
-          }
-        } else if (!context.event_info.location) {
-          if ('attachments' in message.message) {
-            const attach = message.message.attachments;
-            if ('type'in attach[0] && attach[0].type === 'location') {
-              context.event_info.location = attach[0].payload.coordinates;
-              updateContext(senderId, context, () => {
-                choiceAddEventMessage();
-              });
-            } else {
-              location('Ou se déroule votre évènement ?');
-            }
-          } else {
-            location('Ou se déroule votre évènement ?');
-          }
         } else if ('quick_reply' in message.message) {
           // DO NOTHING !!! :)
         } else {
@@ -539,7 +601,7 @@ function createNewEvent(message, callback) {
           }
 
           updateContext(senderId, context, () => {
-            messenger.send({ text: 'Bien reçu...' }).then((res) => {
+            sendMessage('Bien reçu...', () => {
               choiceAddEventMessage();
             });
           });
@@ -560,7 +622,6 @@ function createNewEvent(message, callback) {
         };
         context.validate = false;
 
-        console.log(`Updateing context: ${JSON.stringify(context)}`);
         updateContext(senderId, context, () => {
           messenger.send({ text: 'Quel est le nom de votre évènement ?' });
         });
@@ -581,8 +642,6 @@ function recapEvent(message, callback) {
       let recapEventText = 'Voici le récapitulatif de votre nouvel évènement:\n';
       recapEventText += `   • Nom: ${context.event_info.name}\n`;
       recapEventText += `   • Description: ${context.event_info.description}\n`;
-      recapEventText += `   • Du: ${moment(context.event_info.start_date).format('LLLL')} `;
-      recapEventText += `au ${moment(context.event_info.end_date).format('LLLL')}\n`;
 
       const buttonsArray = [];
       if (userObj.context.welcome_msg.video !== '') {
@@ -603,8 +662,8 @@ function recapEvent(message, callback) {
           })
         );
       }
-      messenger.send({ text: recapEventText }).then((res) => {
-        console.log('Debug: ', JSON.stringify(res));
+      messenger.send({ text: recapEventText }).then(() => {
+        // console.log('Debug: ', JSON.stringify(res));
         messenger.send(
           new fb.GenericTemplate([
             new fb.Element({
@@ -615,8 +674,8 @@ function recapEvent(message, callback) {
               buttons: buttonsArray,
             }),
           ])
-        ).then((res1) => {
-          console.log('Debug: ', JSON.stringify(res1));
+        ).then(() => {
+          // console.log('Debug: ', JSON.stringify(res1));
           const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: 'https://call2text.me/images/circle/validate.png' });
           const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: 'https://call2text.me/images/circle/edit_event.png' });
           const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
@@ -624,7 +683,7 @@ function recapEvent(message, callback) {
           messenger.send(Object.assign(
               { text: 'Faites votre choix:' },
               eventqrs
-            )).then((res2) => { console.log('Debug: ', JSON.stringify(res2)); });
+            ));
         });
       });
     } else {
@@ -642,55 +701,318 @@ function validateEvent(message, callback) {
   User.findOne({ senderid: senderId }, (err, userObj) => {
     if ('context' in userObj) {
       const myContext = userObj.context;
-      const newEvent = new Event({
-        senderid: senderId,
-        admin_list: [senderId],
-        password: invitCode,
-        event_info: {
-          name: myContext.event_info.name,
-          description: myContext.event_info.description,
-          start_date: myContext.event_info.start_date,
-          end_date: myContext.event_info.end_date,
-          location: {
-            lat: myContext.event_info.location.lat,
-            long: myContext.event_info.location.long,
+      saveImage(myContext.welcome_msg.photo, (s3ImageUrl) => {
+        const newEvent = new Event({
+          senderid: senderId,
+          admin_list: [senderId],
+          password: invitCode,
+          event_info: {
+            name: myContext.event_info.name,
+            description: myContext.event_info.description,
+            start_date: myContext.event_info.start_date,
+            end_date: myContext.event_info.end_date,
+            location: {
+              lat: myContext.event_info.location.lat,
+              long: myContext.event_info.location.long,
+            },
           },
-        },
-        welcome_msg: {
-          photo: myContext.welcome_msg.photo,
-          video: myContext.welcome_msg.video,
-          texte: myContext.welcome_msg.texte,
-          audio: myContext.welcome_msg.audio,
-        },
+          welcome_msg: {
+            photo: s3ImageUrl,
+            video: myContext.welcome_msg.video,
+            texte: myContext.welcome_msg.texte,
+            audio: myContext.welcome_msg.audio,
+          },
+        });
+        newEvent.save((err, eventObject) => {
+          if (err) {
+            console.log('Error: ', err);
+          } else {
+            const newEventData = new EventData({
+              eventid: eventObject.id,
+              moderators: [senderId],
+              join_users: [senderId],
+            });
+            newEventData.save((err) => {
+              if (err) {
+                console.log('Error: ', err);
+              } else {
+                UserData.update({ userid: senderId },
+                  { $push: { admin: eventObject.id } }, (err) => {
+                    if (err) {
+                      console.log('Error: ', err);
+                    } else {
+                      console.log('New event created and userData updated');
+                      messenger.send({ text: 'Votre évènement est enregistré' })
+                      .then((res) => {
+                        messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
+                      .then((res) => { callback(); });
+                      });
+                    }
+                  });
+              }
+            });
+          }
+        });
       });
-
-      newEvent.save((err) => {
-        if (err) {
-          console.log('Error: ', err);
-        } else {
-          console.log("Post saved");
-        }
-      })
-      .then(messenger.send({ text: 'Votre évènement est enregistré' }).then((res) => {
-        messenger.send({ text: `Code d'invitation pour vos invités: ${invitCode}` })
-        .then((res) => { callback(); });
-      }));
     }
   });
 }
+
+//--------------------------------------------------------------------------------------------
+// PARTICIPATION Function
+//--------------------------------------------------------------------------------------------
+
+function camera(message, callback) {
+  const senderId = message.sender.id;
+  getContext(senderId, (context) => {
+    if (context && 'joinEventId' in context) {
+      messenger.send({
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'list',
+            top_element_style: 'compact',
+            elements: [{
+              title: 'Ajouter une photo',
+              image_url: 'https://call2text.me/images/square/add_photo.png',
+              subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
+              default_action: {
+                type: 'web_url',
+                url: `https://call2text.me/camera/${senderId}/${context.joinEventId}`,
+                messenger_extensions: true,
+                webview_height_ratio: 'full',
+              },
+            }, {
+              title: 'Gallerie photo',
+              image_url: 'https://call2text.me/images/square/collection.png',
+              subtitle: `Gallerie de photo de l'évènement`,
+              default_action: {
+                type: 'web_url',
+                url: `https://call2text.me/gallery/${context.joinEventId}`,
+                messenger_extensions: true,
+                webview_height_ratio: 'full',
+              },
+            }],
+            buttons: [{
+              title: 'View More',
+              type: 'postback',
+              payload: 'payload',
+            }],
+          },
+        },
+      });
+    }
+  });
+}
+
+function introMessage(eventId, callback) {
+  Event.findOne({ _id: eventId }, (err, eventObject) => {
+    if (err) throw Error(`Error in findOne introMessage: ${err}`);
+
+    if (eventObject) {
+      const recapEventText = `Bienvenu dans l'évenement\n ${eventObject.event_info.name}`;
+      const buttonsArray = [];
+      if (eventObject.welcome_msg.video !== '') {
+        buttonsArray.push(
+          new fb.Button({
+            type: 'web_url',
+            title: 'Video',
+            webview_height_ratio: 'tall',
+            // messenger_extensions: true,
+            url: eventObject.welcome_msg.video,
+          })
+        );
+      }
+      messenger.send({ text: recapEventText }).then(() => {
+        messenger.send(
+          new fb.GenericTemplate([
+            new fb.Element({
+              title: eventObject.event_info.name,
+              item_url: eventObject.welcome_msg.photo,
+              image_url: eventObject.welcome_msg.photo,
+              subtitle: eventObject.welcome_msg.texte,
+              buttons: buttonsArray,
+            }),
+          ])
+        ).then(() => {
+          if (eventObject.welcome_msg.audio !== '') {
+            messenger.send(new fb.Audio({ url: eventObject.welcome_msg.audio }))
+            .then(() => {
+              callback();
+            });
+          } else {
+            callback();
+          }
+        });
+      });
+    }
+  });
+}
+
+function searchEvent(message, callback) {
+  if ('text' in message.message) {
+    const searchText = message.message.text;
+    Event.search({
+      match: {
+        'event_info.name': searchText,
+      },
+    },
+      { size: 3,
+        sort: '_score',
+      },
+    (err, results) => {
+      if (results.hits && results.hits.total >= 1) {
+        const hitList = results.hits.hits;
+        const hitListElements = [];
+
+        hitList.forEach((hit) => {
+          hitListElements.push(
+            new fb.Element({
+              title: hit._source.event_info.name,
+              image_url: hit._source.welcome_msg.photo,
+              subtitle: hit._source.event_info.description,
+              buttons: [
+                new fb.Button({ type: 'postback', title: 'REJOINDRE', payload: `JOIN_EVENT#${hit._id}` }),
+              ],
+            })
+          );
+        });
+        messenger.send(
+          new fb.GenericTemplate(hitListElements)
+        ).then(() => {
+          sendMessage('REJOINDRE un évènement ou effectuez une nouvelle recherche');
+        });
+      } else {
+        sendMessage('Désolé, aucun évènement trouvé...\nVeuillez faire une nouvelle recherche');
+      }
+    });
+  } else {
+    sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
+  }
+}
+
+function joinningEvent(message, callback) {
+  const eventId = message.postback.payload.split('#', 2)[1];
+  const senderId = message.sender.id;
+
+  EventData.findOne({ eventid: eventId }, (err, eventDataObject) => {
+    if (err) throw Error(`Error in findOne EventData: ${err}`);
+
+    let bannedUser = false;
+    let moderators = false;
+    let join = false;
+    let i;
+
+    if (eventDataObject) {
+      for (i = 0; i < eventDataObject.banned_users.length; i += 1) {
+        if (eventDataObject.banned_users[i] === senderId) {
+          bannedUser = true;
+        }
+      }
+      for (i = 0; i < eventDataObject.moderators.length; i += 1) {
+        if (eventDataObject.moderators[i] === senderId) {
+          moderators = true;
+        }
+      }
+      for (i = 0; i < eventDataObject.join_users.length; i += 1) {
+        if (eventDataObject.join_users[i] === senderId) {
+          join = true;
+        }
+      }
+
+      if (bannedUser) {
+        sendMessage('Désolé, mais vous êtes bannis de ce groupe');
+      } else if (join) {
+        User.update({ senderid: senderId },
+          { $set: { 'context.verified': true, 'context.joinEventId': eventId } },
+          (err) => {
+            if (err) throw Error(`Error in update joinningEvent: ${err}`);
+
+            setNextPayload(senderId, 'SENDTO_EVENT', () => {
+              introMessage(eventId, () => {
+                camera(message);
+              });
+            });
+          });
+      } else {
+        const contextJoinEvent = {
+          joinEventId: eventId,
+          verified: false,
+        };
+        updateContext(senderId, contextJoinEvent, () => {
+          setNextPayload(senderId, 'CHECK_INVITATION_CODE', () => {
+            sendMessage("Taper le code d'invitation");
+          });
+        });
+      }
+    } else {
+      console.log('Erreur eventDataObject', JSON.stringify(eventDataObject));
+    }
+  });
+}
+
+function checkInvtCode(message, callback) {
+  const senderId = message.sender.id;
+
+  if ('text' in message.message) {
+    const invitCode = message.message.text;
+
+    User.findOne({senderid: senderId}, (err, userObject) => {
+      if (err) throw Error(`Error in findOne checkInvtCode1: ${err}`);
+
+      if (userObject) {
+        if ('joinEventId' in userObject.context) {
+          Event.findOne({ _id: userObject.context.joinEventId }, (err, eventObject) => {
+            if (err) throw Error(`Error in findOne checkInvtCode2: ${err}`);
+
+            if (eventObject) {
+              if (invitCode.trim() === eventObject.password) {
+                EventData.update({ eventid: eventObject._id }, { $push: { join_users: senderId } },
+                  (err) => {
+                    if (err) throw Error(`Error in findOne checkInvtCode3: ${err}`);
+
+                    User.update({ userid: senderId }, { $set: { 'context.verified': true, 'context.joinEventId': eventObject._id } }, (err) => {
+                      if (err) throw Error(`Error in findOne checkInvtCode4: ${err}`);
+
+                      setNextPayload(senderId, 'SENDTO_EVENT', () => {
+                        introMessage(userObject.context.joinEventId, () => {
+                          camera(message);
+                        });
+                      });
+                    });
+                  });
+              } else {
+                sendMessage('Désolé code incorrect...', () => {
+                  sendMessage("Taper le code d'invitation");
+                });
+              }
+            } else {
+              console.log('Event not found ! eventid: ', userObject.context.joinEventId);
+            }
+          });
+        }
+      } else {
+        console.log('User not found ! SenderId: ', senderId);
+      }
+    });
+  } else {
+    sendMessage("Taper le code d'invitation");
+  }
+}
+
 //--------------------------------------------------------------------------------------------
 // ActionCall Function
 //--------------------------------------------------------------------------------------------
 function actionCall(actionPayload, message) {
   const senderId = message.sender.id;
   return new Promise((resolve, reject) => {
-    console.log(`actionCall payload: ${actionPayload}`);
+    console.log(`senderId ${senderId} actionCall payload: ${actionPayload}`);
 
     const actions = {
       PARTI_EVENEMENT: () => { // Join event as a guest
-        userMobileCheck(message, () => {
-          setNextPayload(senderId, 'PARTI_EVENEMENT', () => {
-            // TODO: participe a un evenement
+        userCheck(message, () => {
+          setNextPayload(senderId, 'SEARCH_EVENT', () => {
+            sendMessage("Quel est le nom de l'évènement auquel vous souhaitez participer ?");
           });
         });
       },
@@ -708,9 +1030,8 @@ function actionCall(actionPayload, message) {
         mobileRequest(senderId);
       },
       CHECK_SMS_OUI: () => {
-        messenger.send({ text: 'Retapez le code invitation reçu par SMS' })
-        .catch((err) => {
-          console.error(`Erreur smsCodeSend! ${err}`);
+        sendMessage('Retapez le code invitation reçu par SMS', () => {
+          console.log('CHECK_SMS_OUI just run');
         });
       },
       CHECK_SMS_NON: () => {
@@ -719,7 +1040,7 @@ function actionCall(actionPayload, message) {
       NEW_EVENT: () => {
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'ADD_EVENT', () => {
-            updateContext(senderId, '', () => {
+            updateContext(senderId, {}, () => {
               createNewEvent(message, () => {
 
               });
@@ -744,7 +1065,7 @@ function actionCall(actionPayload, message) {
       VAL_EVENT: () => {
         userMobileCheck(message, () => {
           validateEvent(message, () => {
-            updateContext(senderId, '', () => {
+            updateContext(senderId, {}, () => {
               setNextPayload(senderId, '', () => {
                 demarrer();
               });
@@ -752,15 +1073,36 @@ function actionCall(actionPayload, message) {
           });
         });
       },
+      SEARCH_EVENT: () => {
+        userCheck(message, () => {
+          searchEvent(message);
+        });
+      },
+      JOIN_EVENT: () => {
+        userCheck(message, () => {
+          joinningEvent(message);
+        });
+      },
+      SENDTO_EVENT: () => {
+        userCheck(message, () => {
+          // TODO: Reception des messages text
+          camera(message);
+        });
+      },
       EDIT_EVENT: () => {
         userMobileCheck(message, () => {
           setNextPayload(senderId, 'EDIT_EVENT', () => {
-            messenger.send({ text: 'Quel est le nom de votre évènement ?' })
-            .catch((err) => {
-              console.error(`Erreur NEW_EVENT! ${err}`);
-            });
+            // Not in use in MVP version
           });
         });
+      },
+      CHECK_INVITATION_CODE: () => {
+        userCheck(message, () => {
+          checkInvtCode(message);
+        });
+      },
+      help: () => {
+        sendMessage("l'aide est en cours de réalisation...");
       },
       DEFAULT: () => {
         demarrer();
@@ -774,35 +1116,20 @@ function actionCall(actionPayload, message) {
 //------------------------------------------------------------------------------------------------
 // On Events
 //------------------------------------------------------------------------------------------------
-
-// postback Calls
-messenger.on('postback', (message) => {
-  const payload = message.postback.payload;
-  console.log(`Postback message recieved: ${JSON.stringify(message)}`);
-
-  // Selon payload
-  switch (payload) {
-    case 'help':
-      messenger.send({ text: "l'aide est en cours de réalisation..." })
-        .then((res) => {
-          console.log(res);
-        });
-      break;
-    case 'start': {
-      demarrer();
-      break;
-    }
-    default:
-
-  }
-});
-
-// Action lors de la reception d'un message
-messenger.on('message', (message) => {
+function receiveMessage(message, callback) {
   console.log(`Message received: ${JSON.stringify(message)}`);
-  let payload = '';
+  let payload = 'DEFAULT';
   // Payload quick replies
-  if ('quick_reply' in message.message) {
+
+  if ('postback' in message && message.postback.payload) {
+    // Passage de parametre dans le payload
+    if (message.postback.payload.indexOf('#')) {
+      payload = message.postback.payload.split('#', 1)[0];
+    } else {
+      payload = message.postback.payload;
+    }
+    actionCall(payload, message);
+  } else if ('quick_reply' in message.message) {
     if ('payload' in message.message.quick_reply) {
       // Passage de parametre dans le payload
       if (message.message.quick_reply.payload.indexOf('#')) {
@@ -810,30 +1137,31 @@ messenger.on('message', (message) => {
       } else {
         payload = message.message.quick_reply.payload;
       }
-
-      actionCall(payload, message)
-      .then(console.log('Ok for actionCall'))
-      .catch((err) => {
-        console.error(`Erreur actionCall Payload: ${payload}`);
-      });
     }
+    actionCall(payload, message);
   } else if ('text' in message.message || 'attachments' in message.message) {
     User.findOne({ senderid: message.sender.id }, (err, userObj) => {
       if (err) throw Error(`Error in findOne senderId: ${err}`);
 
       if (userObj) { // User exist
         payload = userObj.next_payload;
-        console.log(`Next payload on user profil: ${payload} `);
-        actionCall(payload, message)
-        .catch((err) => {
-          console.error(`Erreur actionCall Payload: ${payload}`);
-        });
-      } else {  // User n'existe pas
-        messenger.send({ text: 'Veuillez faire un choix...' })
-        .then(demarrer());
       }
+      actionCall(payload, message);
     });
+  } else {
+    // Take action !!
+    actionCall(payload, message);
   }
+}
+
+// postback Calls
+messenger.on('postback', (message) => {
+  receiveMessage(message);
+});
+
+// Action lors de la reception d'un message
+messenger.on('message', (message) => {
+  receiveMessage(message);
 });
 
 //-------------------------------------------------------------------------------------------
@@ -856,8 +1184,8 @@ app.get('/init', (req, res) => {
 });
 
 app.get('/addweb', (req, res) => {
-  messenger.addWhitelistedDomains(WHITELISTED_DOMAINS).then((res) => {
-    console.log('addWhitelistedDomains: ', res);
+  messenger.addWhitelistedDomains(WHITELISTED_DOMAINS).then((res1) => {
+    console.log('addWhitelistedDomains: ', res1);
   });
   res.sendStatus(200);
 });
@@ -879,10 +1207,47 @@ app.post('/webhook', (req, res) => {
   messenger.handle(req.body);
 });
 
-app.get('/datepicker', (req, res) => {
-  res.sendFile(path.join(__dirname + '/datepicker.html'));
+
+app.post('/uploads', (req, res) => {
+  // res.sendStatus(200);
+  const transloaditResponse = JSON.parse(req.body.transloadit);
+  // console.log('transloadit: ', transloadit.fields);
+
+  // Ajoute l'image dans la base attach
+  addAttach(transloaditResponse, (attach) => {
+    // Affiche la page recap des image uploadées
+    res.render('upload', {
+      senderid: attach.userid,
+      eventid: attach.eventid,
+      senderImage: [
+        {
+          thumbnail_url: attach.thumbnail_url,
+          message: attach.message,
+        },
+      ],
+    });
+  });
 });
 
+
+app.get('/camera/:senderid/:eventid/', (req, res) => {
+  res.render('camera', {
+    eventid: req.params.eventid,
+    senderid: req.params.senderid,
+  });
+});
+
+app.get('/gallery/:eventid/', (req, res) => {
+  eventGallery(req.params.eventid, (attachArray) => {
+    if (attachArray === false) {
+      sendMessage('Aucune photo dans la gallerie, désolé...');
+    } else {
+      res.render('gallery', {
+        eventImage: attachArray,
+      });
+    }
+  });
+});
 //------------------------------------------------------------------------------------
 // Start Server
 //------------------------------------------------------------------------------------
