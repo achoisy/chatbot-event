@@ -59,7 +59,7 @@ $(function() {
 	      auth: { key: "036bc9a0954011e68fa62b9952eb5f8d" },
 	      template_id: "a13c7f20ab6211e6b7ebc1ae09261fcb",
 	      steps: {
-	        store: {
+	        stockage: {
 	          path: '/${assembly.id}.${file.ext}',
 	        },
 	        storethumb: {
