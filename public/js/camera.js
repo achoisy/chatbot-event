@@ -30,11 +30,11 @@ $("#fileUpload").on('change', function () {
 
         } else {
             alert("This browser does not support FileReader.");
-						$('<img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />').replaceAll("#image-holder");
+						$('<img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />').replaceAll("#image-holder");
         }
     } else {
         alert("Pls select only images");
-				$('<img src="https://call2text.me/images/square/add_photo.png" class="responsive-img" />').replaceAll("#image-holder");
+				$('<img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />').replaceAll("#image-holder");
     }
 });
 let message ='';
