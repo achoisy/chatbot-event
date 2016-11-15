@@ -308,7 +308,7 @@ function saveImage(imageUrl, callback) {
     }
     const imageExt = imageUrl.split('.').pop();
 
-    const pathToImage = `https://s3.amazonaws.com/chatbot-event1/coverimage/${result.assembly_id}.${imageExt}`;
+    const pathToImage = `https://s3.amazonaws.com/${s3Bucket.bucketName}/coverimage/${result.assembly_id}.${imageExt}`;
     callback(pathToImage);
   });
 }
