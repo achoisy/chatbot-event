@@ -43,6 +43,13 @@ const transloadit = new TransloaditClient({
 // web page setup
 const sslWebUrl = process.env.WEB_ADRESSE;
 
+// AWS S3 bucket credit
+const s3Bucket = {
+  authKey: process.env.AWS_S3_ACCOUNT_ID,
+  authSecret: process.env.AWS_S3_AUTH_SECRET,
+  bucketName: process.env.AWS_S3_BUCKET_NAME,
+};
+
 // Express wrap
 const app = express();
 
@@ -286,9 +293,9 @@ function saveImage(imageUrl, callback) {
         store: {
           use: 'import',
           robot: '/s3/store',
-          key: 'AKIAIZG3342WE3TJXLOQ',
-          secret: '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',
-          bucket: 'chatbot-event1',
+          key: s3Bucket.authKey,
+          secret: s3Bucket.authSecret,
+          bucket: s3Bucket.bucketName,
           path: '/coverimage/${assembly.id}.${file.ext}',
         },
       },
