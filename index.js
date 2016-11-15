@@ -808,9 +808,9 @@ function camera(message, callback) {
               },
             }],
             buttons: [{
-              title: 'View More',
+              title: 'AIDE',
               type: 'postback',
-              payload: 'payload',
+              payload: 'help',
             }],
           },
         },
