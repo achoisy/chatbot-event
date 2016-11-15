@@ -255,11 +255,18 @@ function location(msg) {
 }
 
 function addAttach(transload, callback) {
+  let fullUrl = '';
+
+  if (transload.results[':original'][0].ssl_url.indexOf('?')) {
+    fullUrl = transload.results[':original'][0].ssl_url.split('?', 1)[0];
+  } else {
+    fullUrl = transload.results[':original'][0].ssl_url;
+  }
   const newAttach = new Attach({
     userid: transload.fields.senderid_pic,
     eventid: transload.fields.eventid_pic,
     content_type: 'img',
-    full_url: transload.results.encode[0].ssl_url,
+    full_url: fullUrl,
     thumbnail_url: transload.results.thumb[0].ssl_url,
     message: transload.fields.message_pic,
   });
