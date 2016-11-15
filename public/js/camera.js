@@ -57,13 +57,13 @@ $(function() {
 	    wait: true,
 	    params: {
 	      auth: { key: "036bc9a0954011e68fa62b9952eb5f8d" },
-	      template_id: "42a6d8f0954d11e69db1219efbd0fde2",
+	      template_id: "a13c7f20ab6211e6b7ebc1ae09261fcb",
 	      steps: {
 	        store: {
-	          path: storePath + '/${assembly.id}.${file.ext}',
+	          path: '/${assembly.id}.${file.ext}',
 	        },
 	        storethumb: {
-	          path: storePath + '/thumb/${assembly.id}.${file.ext}',
+	          path: '/${assembly.id}.${file.ext}',
 	        },
 	      },
 	      fields: {
