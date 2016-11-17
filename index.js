@@ -41,7 +41,8 @@ const transloadit = new TransloaditClient({
 });
 
 // web page setup
-const sslWebUrl = process.env.WEB_ADRESSE;
+const sslRootUrl = process.env.WEB_ADRESSE;
+const sslWebUrl = `${sslRootUrl}/messenger`;
 
 // AWS S3 bucket credit
 const s3Bucket = {
@@ -53,7 +54,7 @@ const s3Bucket = {
 // Express wrap
 const app = express();
 
-app.use(express.static('public'));
+// app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -68,7 +69,7 @@ const messenger = new fb.Messenger({
 // Liste d'url accessible
 const WHITELISTED_DOMAINS = [
   'http://chatbotsmaker.fr',
-  sslWebUrl,
+  sslRootUrl,
 ];
 // console.log('Debug: ', JSON.stringify(res));
 //-------------------------------------------------------------------------------------------------
@@ -1183,7 +1184,7 @@ messenger.on('message', (message) => {
 //-------------------------------------------------------------------------------------------
 
 // Server API
-app.get('/webhook', (req, res) => {
+app.get('/messenger/webhook', (req, res) => {
   if (req.query['hub.mode'] === 'subscribe' &&
     req.query['hub.verify_token'] === process.env.VERIFY_TOKEN) {
     res.send(req.query['hub.challenge']);
@@ -1192,37 +1193,37 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-app.get('/init', (req, res) => {
+app.get('/messenger/init', (req, res) => {
   botInit();
   res.sendStatus(200);
 });
 
-app.get('/addweb', (req, res) => {
+app.get('/messenger/addweb', (req, res) => {
   messenger.addWhitelistedDomains(WHITELISTED_DOMAINS).then((res1) => {
     console.log('addWhitelistedDomains: ', res1);
   });
   res.sendStatus(200);
 });
 
-app.get('/removethread', (req, res) => {
+app.get('/messenger/removethread', (req, res) => {
   threadBotRemove();
   res.sendStatus(200);
 });
 
 // Check connection
-app.get('/checkserver', (req, res) => {
+app.get('/messenger/checkserver', (req, res) => {
   console.log('Server connexion OK !');
   res.sendStatus(200);
 });
 
 // Facebook Webhook
-app.post('/webhook', (req, res) => {
+app.post('/messenger/webhook', (req, res) => {
   res.sendStatus(200);
   messenger.handle(req.body);
 });
 
 
-app.post('/uploads', (req, res) => {
+app.post('/messenger/uploads', (req, res) => {
   // res.sendStatus(200);
   const transloaditResponse = JSON.parse(req.body.transloadit);
   // console.log('transloadit: ', transloadit.fields);
@@ -1244,14 +1245,14 @@ app.post('/uploads', (req, res) => {
 });
 
 
-app.get('/camera/:senderid/:eventid/', (req, res) => {
+app.get('/messenger/camera/:senderid/:eventid/', (req, res) => {
   res.render('camera', {
     eventid: req.params.eventid,
     senderid: req.params.senderid,
   });
 });
 
-app.get('/gallery/:eventid/', (req, res) => {
+app.get('/messenger/gallery/:eventid/', (req, res) => {
   eventGallery(req.params.eventid, (attachArray) => {
     if (attachArray === false) {
       sendMessage('Aucune photo dans la gallerie, désolé...');
