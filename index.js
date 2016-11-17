@@ -168,19 +168,19 @@ function demarrer() {
     new fb.GenericTemplate([
       new fb.Element({
         title: 'Participer à un évènement',
-        image_url: `${sslWebUrl}/images/square/join_event.png`,
+        image_url: `${sslRootUrl}/images/square/join_event.png`,
         subtitle: "Si Vous êtes invités à participer à un évènement",
       }),
       new fb.Element({
         title: 'Organiser un évènement',
-        image_url: `${sslWebUrl}/images/square/new_event.png`,
+        image_url: `${sslRootUrl}/images/square/new_event.png`,
         subtitle: "Si vous organisez ou avez les droits d'administration d'un évènement",
       }),
     ])
   ).then((res) => {
-    const demqr1 = new fb.QuickReply({ title: `J'organise`, payload: 'ORGAN_EVENEMENT', image_url: `${sslWebUrl}/images/circle/new_event.png` });
+    const demqr1 = new fb.QuickReply({ title: `J'organise`, payload: 'ORGAN_EVENEMENT', image_url: `${sslRootUrl}/images/circle/new_event.png` });
     // const qr2 = new fb.QuickReply({ title: 'MODIFIER', payload: 'MODIF_EVENEMENT'});
-    const demqr2 = new fb.QuickReply({ title: 'Je participe', payload: 'PARTI_EVENEMENT', image_url: `${sslWebUrl}/images/circle/join_event.png` });
+    const demqr2 = new fb.QuickReply({ title: 'Je participe', payload: 'PARTI_EVENEMENT', image_url: `${sslRootUrl}/images/circle/join_event.png` });
     const demqrs = new fb.QuickReplies([demqr2, demqr1]);
     messenger.send(Object.assign(
         { text: 'Faites votre choix:' },
@@ -336,8 +336,8 @@ function mobileRequest(senderId) {
 }
 
 function confirmMobileNumber(mobileNumber) {
-  const conqr1 = new fb.QuickReply({ title: 'Oui', payload: `CONF_MOBILE#${phoneUtil.format(mobileNumber, PNF.E164)}`, image_url: `${sslWebUrl}/images/circle/yes.png` });
-  const conqr2 = new fb.QuickReply({ title: 'Non', payload: 'MOBILE_REQUEST', image_url: `${sslWebUrl}/images/circle/no.png` });
+  const conqr1 = new fb.QuickReply({ title: 'Oui', payload: `CONF_MOBILE#${phoneUtil.format(mobileNumber, PNF.E164)}`, image_url: `${sslRootUrl}/images/circle/yes.png` });
+  const conqr2 = new fb.QuickReply({ title: 'Non', payload: 'MOBILE_REQUEST', image_url: `${sslRootUrl}/images/circle/no.png` });
   const conqrs = new fb.QuickReplies([conqr1, conqr2]);
 
   messenger.send(Object.assign(
@@ -533,13 +533,13 @@ function choiceOrganis() {
     new fb.GenericTemplate([
       new fb.Element({
         title: 'Creer évènement',
-        image_url: `${sslWebUrl}/images/square/add_event.png`,
+        image_url: `${sslRootUrl}/images/square/add_event.png`,
         subtitle: 'Créez votre nouvelle évènement et centralisez les photos, vidéos et commentaires de vos évènements',
       }),
     ])
   ).then((res) => {
-    const eventqr1 = new fb.QuickReply({ title: 'Créer évènement', payload: 'NEW_EVENT', image_url: `${sslWebUrl}/images/circle/add_event.png` });
-    const eventqr2 = new fb.QuickReply({ title: 'Annuler', payload: 'DEFAULT', image_url: `${sslWebUrl}/images/circle/cancel.png` });
+    const eventqr1 = new fb.QuickReply({ title: 'Créer évènement', payload: 'NEW_EVENT', image_url: `${sslRootUrl}/images/circle/add_event.png` });
+    const eventqr2 = new fb.QuickReply({ title: 'Annuler', payload: 'DEFAULT', image_url: `${sslRootUrl}/images/circle/cancel.png` });
     const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
 
     messenger.send(Object.assign(
@@ -553,12 +553,12 @@ function choiceAddEventMessage() {
   const addEventqr1 = new fb.QuickReply({
     title: 'Ajouter',
     payload: 'ADD_EVENT',
-    image_url: `${sslWebUrl}/images/circle/add_event.png`,
+    image_url: `${sslRootUrl}/images/circle/add_event.png`,
   });
   const addEventqr2 = new fb.QuickReply({
     title: 'Terminer',
     payload: 'RECAP_EVENT',
-    image_url: `${sslWebUrl}/images/circle/validate.png`,
+    image_url: `${sslRootUrl}/images/circle/validate.png`,
   });
   const addEventqr = new fb.QuickReplies([addEventqr1, addEventqr2]);
   messenger.send(Object.assign(
@@ -691,8 +691,8 @@ function recapEvent(message, callback) {
           ])
         ).then(() => {
           // console.log('Debug: ', JSON.stringify(res1));
-          const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: `${sslWebUrl}/images/circle/validate.png` });
-          const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: `${sslWebUrl}/images/circle/edit_event.png ` });
+          const eventqr1 = new fb.QuickReply({ title: 'Je valide', payload: 'VAL_EVENT', image_url: `${sslRootUrl}/images/circle/validate.png` });
+          const eventqr2 = new fb.QuickReply({ title: 'Je modifie', payload: 'NEW_EVENT', image_url: `${sslRootUrl}/images/circle/edit_event.png ` });
           const eventqrs = new fb.QuickReplies([eventqr1, eventqr2]);
 
           messenger.send(Object.assign(
@@ -789,7 +789,7 @@ function camera(message, callback) {
             top_element_style: 'compact',
             elements: [{
               title: 'Ajouter une photo',
-              image_url: `${sslWebUrl}/images/square/add_photo.png`,
+              image_url: `${sslRootUrl}/images/square/add_photo.png`,
               subtitle: 'Prendre une photo ou selectionner des photos à envoyer',
               default_action: {
                 type: 'web_url',
@@ -799,7 +799,7 @@ function camera(message, callback) {
               },
             }, {
               title: 'Gallerie photo',
-              image_url: `${sslWebUrl}/images/square/collection.png`,
+              image_url: `${sslRootUrl}/images/square/collection.png`,
               subtitle: `Gallerie de photo de l'évènement`,
               default_action: {
                 type: 'web_url',
