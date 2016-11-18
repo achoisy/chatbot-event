@@ -21,6 +21,9 @@ const EventData = require('./models/eventdata');
 const UserData = require('./models/userdata');
 const Attach = require('./models/attach');
 
+// Set mongoose.Promise to any Promise implementation
+mongoose.Promise = Promise;
+
 moment.locale('fr'); // 'fr'
 
 // google phone checker
@@ -275,7 +278,12 @@ function addAttach(transload, callback) {
   newAttach.save((err, attachObject) => {
     if (err) throw Error(`Error in findOne senderId: ${err}`);
 
-    callback(attachObject);
+    EventData.findOneAndUpdate(
+      { eventid: attachObject.eventid },
+      { $push: { attach_to_validate: attachObject._id } }
+    ).exec()
+    .catch((err) => { throw Error(`Error in findOneAndUpdate AddAtach: ${err}`); })
+    .then(callback(attachObject));
   });
 }
 
