@@ -11,6 +11,7 @@ const attachSchema = new Schema({
   full_url: { type: String },
   thumbnail_url: { type: String },
   message: { type: String, maxlength: 120 },
+  meta: {},
 });
 
 // attachSchema.plugin(mongoosastic);

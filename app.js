@@ -270,6 +270,7 @@ function addAttach(transload, callback) {
     full_url: fullUrl,
     thumbnail_url: transload.results.thumb[0].ssl_url,
     message: transload.fields.message_pic,
+    meta: transload.results[':original'][0].meta,
   });
   newAttach.save((err, attachObject) => {
     if (err) throw Error(`Error in findOne senderId: ${err}`);
