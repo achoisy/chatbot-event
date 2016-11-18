@@ -18,7 +18,6 @@ const eventData = require('./lib/eventdata.js');
 const mobile = require('./lib/mobile.js');
 const fbsettings = require('./lib/threadSettings.js');
 const attach = require('./lib/attach.js');
-const message = require('./lib/message.js');
 
 // Model for mongoose schema
 const User = require('./models/users');
@@ -707,7 +706,7 @@ app.get('/messenger/camera/:senderid/:eventid/', (req, res) => {
 app.get('/messenger/gallery/:eventid/', (req, res) => {
   attach.listByEventId(req.params.eventid, (attachArray) => {
     if (attachArray === false) {
-      message.send('Aucune photo dans la gallerie, désolé...');
+      msg.send('Aucune photo dans la gallerie, désolé...');
     } else {
       res.render('gallery', {
         eventImage: attachArray,
