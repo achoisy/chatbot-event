@@ -20,6 +20,8 @@ mongoose.connect(mongodbUrl);
 const app = express();
 
 // app.use(express.static('public'));
+// set the static files location for our Ember application
+app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
