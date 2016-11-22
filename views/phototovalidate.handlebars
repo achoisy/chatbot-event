@@ -1,0 +1,45 @@
+
+<div class="container">
+  {{#if photo}}
+    <div class="row section">
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-image waves-effect waves-block waves-light">
+                    <img class="activator" src="{{photo.thumbnail_url}}">
+                </div>
+                <div class="card-content">
+                    <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{photo.message}}<i class="material-icons right">more_horiz</i></span>
+                </div>
+                <div class="card-reveal">
+                    <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
+                    <p class="flow-text"> {{photo.message}} </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer id="footer" class="">
+  <div class="row">
+    <div class="col s6">
+      <a  id="close-btn" class="btn-flat">Fermer</a>
+    </div>
+    <div class="col s6">
+      <a  href="https://monmagazine.fr/messenger/camera/{{senderid}}/{{eventid}}" class="btn light-blue darken-4 "><i class="material-icons right">add_a_photo</i>Camera</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+</script>
+
+<script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
+<script src="//assets.transloadit.com/js/jquery.transloadit2-v2-latest.js"></script>
