@@ -24,15 +24,27 @@
 <footer id="footer" class="">
   <div class="row">
     <div class="col s6">
-      <a  href="https://monmagazine.fr/messenger/photo/notvalide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_down</i>Refuser</a>
+      <a  href="https://monmagazine.fr/messenger/photo/notvalide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_down</i>NON</a>
     </div>
     <div class="col s6">
-      <a  href="https://monmagazine.fr/messenger/photo/valide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_up</i>Accepter</a>
+      <a  href="https://monmagazine.fr/messenger/photo/valide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_up</i>OUI</a>
     </div>
   </div>
 </footer>
+
 {{else}}
-  <h3>Pas de photo a valider</h3>
+  <div class="row section">
+    <div class="col S12">
+      <h4 class="light-blue-text text-darken-4">Pas de photo a valider</h4>
+    </div>
+  </div>
+  <footer id="footer" class="">
+    <div class="row">
+      <div class="col s12 m3">
+        <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+      </div>
+    </div>
+  </footer>
 {{/if}}
 
 
@@ -49,3 +61,4 @@
 <script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 <script src="//assets.transloadit.com/js/jquery.transloadit2-v2-latest.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/upload.js"></script>

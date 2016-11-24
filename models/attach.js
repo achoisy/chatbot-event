@@ -10,7 +10,18 @@ const attachSchema = new Schema({
   content_type: { type: String },
   full_url: { type: String },
   thumbnail_url: { type: String },
+  author_pic: String,
   message: { type: String, maxlength: 120 },
+  public_id: { type: String },
+  version: Number,
+  signature: String,
+  width: Number,
+  height: Number,
+  format: String,
+  resource_type: String,
+  tags: [String],
+  bytes: Number,
+  path: String,
   meta: {},
 });
 

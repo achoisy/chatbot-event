@@ -4,18 +4,9 @@ const Schema = mongoose.Schema;
 
 const userDataSchema = new Schema({
   userid: { type: String, required: true, unique: true },
-  admin: [String],  // List of administrated events
-  moderator: [String],  // List of moderated events
-  join_events: [String],  // List of joinned events
-  banned_events: [String],  // List of banned from events
-  user_score: { type: Number, default: 0 }, // Global Score
-  scoreby_event: [
-    {
-      eventid: String,
-      score: Number,
-    },
-  ],
-  attachments: [String],
+  moderator: [Schema.Types.Mixed],  // List of moderated events
+  join_events: [Schema.Types.Mixed], // [ {eventid: _id, print: number}]
+    // List of joinned events
 });
 
 module.exports = mongoose.model('UserData', userDataSchema);

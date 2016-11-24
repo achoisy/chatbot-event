@@ -10,8 +10,15 @@
                     <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{this.message}}<i class="material-icons right">more_horiz</i></span>
                 </div>
                 <div class="card-reveal">
-                    <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
-                    <p class="flow-text"> {{this.message}} </p>
+                  <div class="row valign-wrapper">
+                    <div class="col s2">
+                      <img src="{{this.profilpic}}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
+                    </div>
+                    <div class="col s10">
+                      <span class="black-text text-darken-4"><i class="material-icons right">close</i></span>
+                        {{this.message}}
+                      </span>
+                    </div>
                 </div>
             </div>
         </div>
