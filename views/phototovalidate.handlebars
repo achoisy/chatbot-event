@@ -1,32 +1,38 @@
-{{#if photo}}
+{{#if eventImage}}
 <div class="container padding-btn">
     <div class="row section">
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-image waves-effect waves-block waves-light">
-                    <img class="activator" src="{{photo.thumbnail_url}}">
-                </div>
-                <div class="card-content">
-                    <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{photo.message}}<i class="material-icons right">more_horiz</i></span>
-                </div>
-                <div class="card-reveal">
-                    <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
-                    <p class="flow-text"> {{photo.message}} </p>
-                    <p class="flow-text">AttachId: {{photo._id}} </p>
-                    <p class="flow-text">EventId: {{photo.eventid}} </p>
-                </div>
-            </div>
+      <div class="col s12 m6">
+          <div class="card">
+              <div class="card-image waves-effect waves-block waves-light">
+                  <img class="activator" src="{{eventImage.thumbnail_url}}">
+              </div>
+              <div class="card-content">
+                  <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{eventImage.message}}<i class="material-icons right">more_horiz</i></span>
+              </div>
+              <div class="card-reveal">
+                <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
+                <div class="row ">
+                  <div class="col s4 offset-s4 m2">
+                    <img src="{{eventImage.author_pic}}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
+                  </div>
+                  <div class="col s12 m10">
+                    <span class="grey-text text-darken-4 flow-text">
+                      {{eventImage.message}}
+                    </span>
+                  </div>
+              </div>
+          </div>
         </div>
     </div>
 </div>
 
 <footer id="footer" class="">
-  <div class="row">
+  <div class="row padding-bottom-no">
     <div class="col s6">
-      <a  href="https://monmagazine.fr/messenger/photo/notvalide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_down</i>NON</a>
+      <a  href="https://monmagazine.fr/messenger/photo/notvalide/{{eventImage.eventid}}/{{eventImage._id}}" class="btn light-blue darken-4 btn-large btn-fullblock"><i class="material-icons right">thumb_down</i>NON</a>
     </div>
     <div class="col s6">
-      <a  href="https://monmagazine.fr/messenger/photo/valide/{{photo.eventid}}/{{photo._id}}" class="btn light-blue darken-4 btn-large"><i class="material-icons right">thumb_up</i>OUI</a>
+      <a  href="https://monmagazine.fr/messenger/photo/valide/{{eventImage.eventid}}/{{eventImage._id}}" class="btn light-blue darken-4 btn-large btn-fullblock"><i class="material-icons right">thumb_up</i>OUI</a>
     </div>
   </div>
 </footer>
@@ -35,7 +41,7 @@
 <div class="container">
   <div class="row section">
     <div class="col S12">
-      <h4 class="light-blue-text text-darken-4">Pas de photo a valider</h4>
+      <h4 class="light-blue-text text-darken-4">Pas de photo à valider</h4>
     </div>
   </div>
 </div>
