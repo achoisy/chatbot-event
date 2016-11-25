@@ -1,30 +1,28 @@
+{{#if eventImage}}
 <div class="container padding-btn">
-  {{#if eventImage}}
     <div class="row section">
-      {{#each eventImage}}
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-image waves-effect waves-block waves-light">
-                    <img class="activator" src="{{this.thumbnail_url}}">
-                </div>
-                <div class="card-content">
-                    <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{this.message}}<i class="material-icons right">more_horiz</i></span>
-                </div>
-                <div class="card-reveal">
-                  <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
-                  <div class="row ">
-                    <div class="col s4 offset-s4 m2">
-                      <img src="{{this.author_pic}}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
-                    </div>
-                    <div class="col s12 m10">
-                      <span class="grey-text text-darken-4 flow-text">
-                        {{this.message}}
-                      </span>
-                    </div>
-                </div>
-            </div>
+      <div class="col s12 m6">
+          <div class="card">
+              <div class="card-image waves-effect waves-block waves-light">
+                  <img class="activator" src="{{eventImage.thumbnail_url}}">
+              </div>
+              <div class="card-content">
+                  <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{eventImage.message}}<i class="material-icons right">more_horiz</i></span>
+              </div>
+              <div class="card-reveal">
+                <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
+                <div class="row ">
+                  <div class="col s4 offset-s4 m2">
+                    <img src="{{eventImage.author_pic}}" alt="" class="circle responsive-img"> <!-- notice the "circle" class -->
+                  </div>
+                  <div class="col s12 m10">
+                    <span class="grey-text text-darken-4 flow-text">
+                      {{eventImage.message}}
+                    </span>
+                  </div>
+              </div>
+          </div>
         </div>
-      {{/each}}
     </div>
 </div>
 
@@ -40,11 +38,13 @@
 </footer>
 
 {{else}}
+<div class="container">
   <div class="row section">
     <div class="col S12">
       <h4 class="light-blue-text text-darken-4">Pas de photo telecharger</h4>
     </div>
   </div>
+</div>
   <footer id="footer" class="">
     <div class="col s12 m3">
       <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
