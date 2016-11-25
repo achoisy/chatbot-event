@@ -1,0 +1,25 @@
+
+<div clas="container">
+  <ul class="collapsible" data-collapsible="accordion">
+    {{if proPublicat}}
+      <li>
+        <div class="collapsible-header"><i class="material-icons">person</i>Vos créations</div>
+        <div class="collapsible-body">
+          {{#each proPublicat}}
+            <span>this.event_info.name </span>
+          {{/each}}
+        </div>
+      </li>
+    {{/if}}
+    {{#if parPublicat}}
+      <li>
+        <div class="collapsible-header"><i class="material-icons">people</i>Vos participations</div>
+        <div class="collapsible-body">
+          {{#each parPublicat}}
+            <span>this.event_info.name </span>
+          {{/each}}
+        </p></div>
+      </li>
+    {{/if}}
+  </ul>
+</div>
