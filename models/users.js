@@ -22,6 +22,15 @@ const userSchema = new Schema({
   last_payload: String,
   next_payload: String,
   context: {},
+  address: {
+    addressLine1: String,
+    addressLine2: String,
+    zipCode: Number,
+    city: String,
+    state: String,
+    country: String,
+    countryCode: String,
+  },
 });
 
 module.exports = mongoose.model('User', userSchema);

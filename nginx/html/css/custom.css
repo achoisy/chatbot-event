@@ -9,6 +9,9 @@
 .margin-bottom-no {
   margin-bottom: 0px;
 }
+.active.margin-bottom-yes {
+  margin-bottom: 20px;
+}
 
 .btn-fullblock {
   width: 100%;
