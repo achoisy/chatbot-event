@@ -9,6 +9,7 @@ const attachSchema = new Schema({
   create_date: { type: Date, default: Date.now },
   content_type: { type: String },
   full_url: { type: String },
+  optimiseImageUrl: String,
   thumbnail_url: { type: String },
   author_pic: String,
   message: { type: String, maxlength: 120 },

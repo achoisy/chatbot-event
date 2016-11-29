@@ -10,6 +10,8 @@ const moment = require('moment');
 const exphbs = require('express-handlebars');
 const path = require('path');
 
+const helper = require('./lib/helper.js');
+
 moment.locale('fr'); // 'fr'
 
 // Compose.io Mongo url
@@ -26,7 +28,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.engine('handlebars', exphbs({ defaultLayout: 'main' }));
+const hbs = exphbs.create({
+  defaultLayout: 'main',
+  helpers: helper,
+});
+
+app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
 // Routes

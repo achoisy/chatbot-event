@@ -24,15 +24,20 @@
               </div>
               <div class="row">
                 <div class="col s12">
-                  <a title="Peecho" href="http://www.peecho.com" class="peecho-print-button"
-                    data-filetype="pdf" data-width="210.0" data-height="297.0"
-                    data-pages="20" data-src='https://peecho-assets.s3.amazonaws.com/storage/flight-images/pdf/demo/peecho-book-portrait-297x210mm-32pages.pdf'
-                    data-thumbnail='https://peecho-assets.s3.amazonaws.com/storage/flight-images/demo/book.jpg'  data-locale="fr_FR">PDF to book print</a>
+                  <a title='Peecho Print Button' href='http://www.peecho.com/'
+                  class='peecho-print-button'
+                  data-filetype='pdf'
+                  data-width='210'
+                  data-height='297'
+                  data-pages='32'
+                  data-src='https://peecho-assets.s3.amazonaws.com/storage/flight-images/pdf/demo/peecho-book-portrait-297x210mm-32pages.pdf'
+                  data-thumbnail='https://peecho-assets.s3.amazonaws.com/storage/flight-images/demo/book.jpg'>
+                  PDF to magazine print</a>
                 </div>
               </div>
             </li>
           {{/each}}
-          </ul
+        </ul>
         </div>
       </li>
     {{/if}}
@@ -40,6 +45,7 @@
       <li>
         <div class="collapsible-header"><i class="material-icons">people</i>Vos participations</div>
         <div class="collapsible-body">
+          <ul class="collapsible" data-collapsible="accordion">
           {{#each parPublicat}}
           <li>
             <div class="collapsible-header margin-bottom-yes"><i class="material-icons">keyboard_arrow_right</i>{{this.event_info.name}}</div>
@@ -52,6 +58,7 @@
                   <div class="row">
                     <div class="col s12">
                       <span class="flow-text">{{this.event_info.description}}</span>
+                      <p>ceci est un test de helpers: {{preOrder}}</p>
                     </div>
                   </div>
                 </div>
@@ -61,19 +68,23 @@
                 <a title='MonMagazine.fr' href='http://www.peecho.com/'
                 class='peecho-print-button'
                 data-filetype='pdf'
-                data-width='150'
-                data-height='210'
-                data-pages='16' 
-                data-src='https://peecho-assets.s3.amazonaws.com/storage/flight-images/pdf/demo/peecho-book-portrait-297x210mm-32pages.pdf'
+                data-width='160'
+                data-height='240'
+                data-pages='16'
                 data-thumbnail='https://peecho-assets.s3.amazonaws.com/storage/flight-images/demo/book.jpg'
                 data-locale="fr_FR"
+                data-theme="blue"
+                data-text="IMPRIMER à partir de "
                 data-reference='{{this._id}}'
+                data-title='{{this.event_info.name}}'
+
                 >PDF book on demand</a>
               </div>
             </div>
           </li>
           {{/each}}
-        </p></div>
+          </ul>
+        </div>
       </li>
     {{/if}}
   </ul>
