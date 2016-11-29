@@ -104,7 +104,7 @@ $(function () {
   $('#fileUpload').fileupload({
       dataType: 'json',
       add: function (e, data) {
-        $("a[name='action']").click(() => {
+        $("a[name='action']").click(function () {
           $('.btn').addClass('disabled');
         	data.submit();
         });
