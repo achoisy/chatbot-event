@@ -63,21 +63,7 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col s12">
-                  <a title='MonMagazine.fr' href='http://www.peecho.com/'
-                  class='peecho-print-button'
-                  data-filetype='pdf'
-                  data-width='160'
-                  data-height='240'
-                  data-pages='{{pageNumber this._id}}'
-                  data-thumbnail='{{thumbnail this._id}}'
-                  data-locale="fr_FR"
-                  data-theme="blue"
-                  data-text="IMPRIMER à partir de "
-                  data-reference='{{this._id}}'
-                  data-title='{{this.event_info.name}}'
-                  >PDF book on demand</a>
-                </div>
+                {{printButton this._id}}
               </div>
             </li>
           {{/each}}
@@ -148,21 +134,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="col s12">
-                <a title='MonMagazine.fr' href='http://www.peecho.com/'
-                class='peecho-print-button'
-                data-filetype='pdf'
-                data-width='160'
-                data-height='240'
-                data-pages='{{pageNumber this._id}}'
-                data-thumbnail='{{thumbnail this._id}}'
-                data-locale="fr_FR"
-                data-theme="blue"
-                data-text="IMPRIMER à partir de "
-                data-reference='{{this._id}}'
-                data-title='{{this.event_info.name}}'
-                >PDF book on demand</a>
-              </div>
+              {{printButton this._id}}
             </div>
           </li>
           {{/each}}
@@ -223,7 +195,7 @@
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 <script type="text/javascript" src="https://monmagazine.fr/js/upload.js"></script>
 
-<!-- TEST PEECHO PLUGIN
+<!-- TEST PEECHO PLUGIN-->
 <script type="text/javascript">
 (function() {
 var p=document.createElement("script");p.type="text/javascript";p.async=true;
@@ -232,9 +204,9 @@ p.src=h+"d2bqfg1o8jltul.cloudfront.net/button/script/1480324358479493.js";
 var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(p,s);
 }).call(this);
 </script>
--->
 
-<!-- LIVE PEECHO PLUGIN -->
+
+<!-- LIVE PEECHO PLUGIN
 <script type="text/javascript">
 (function() {
 var p=document.createElement("script");p.type="text/javascript";p.async=true;
@@ -243,6 +215,7 @@ p.src=h+"d3aln0nj58oevo.cloudfront.net/button/script/147991051526511325.js";
 var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(p,s);
 }).call(this);
 </script>
+-->
 
 <script>
 var titreId ="";

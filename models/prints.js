@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const printSchema = new Schema({
-  senderid: { type: String, required: true, unique: true },
+  senderid: String,
   printName: String,
   pdfUrl: String,
   pdfWidth: Number,
@@ -23,6 +23,7 @@ const printSchema = new Schema({
       height: Number,
     },
   ],
+  printable: { type: Boolean, default: false },
   printed: { type: Boolean, default: false },
   ordered: { type: Boolean, default: false },
 });
