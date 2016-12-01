@@ -16,6 +16,7 @@
     "express-handlebars": "^3.0.0",
     "fbmessenger": "^3.1.0",
     "google-libphonenumber": "^2.0.2",
+    "handlebars": "^4.0.6",
     "html-pdf": "^2.1.0",
     "moment": "^2.15.1",
     "mongoosastic": "^4.0.2",
