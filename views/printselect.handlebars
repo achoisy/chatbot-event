@@ -64,7 +64,14 @@
               </div>
               <div class="row">
                 <div class="col s12">
-                  {{printButtonPortrait this}}
+                  {{#if this.printable}}
+                    {{printButtonPortrait this}}
+                  {{else}}
+                  <blockquote>
+                    Désolé mais cette publication ne contient pas suffisamment de photo validées.
+                  </blockquote>
+                  {{/if}}
+
                 </div>
               </div>
             </li>
@@ -137,7 +144,13 @@
             </div>
             <div class="row">
               <div class="col s12">
-                {{printButtonPortrait this}}
+                {{#if this.printable}}
+                  {{printButtonPortrait this}}
+                {{else}}
+                <blockquote>
+                  Désolé mais cette publication ne contient pas suffisamment de photo validées.
+                </blockquote>
+                {{/if}}
               </div>
             </div>
           </li>

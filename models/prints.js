@@ -23,7 +23,7 @@ const printSchema = new Schema({
       height: Number,
     },
   ],
-  printable: String,
+  printable: { type: Boolean, default: false },
   printed: { type: Boolean, default: false },
   ordered: { type: Boolean, default: false },
   eventId: Schema.Types.ObjectId,
