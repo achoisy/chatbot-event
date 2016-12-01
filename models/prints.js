@@ -23,9 +23,13 @@ const printSchema = new Schema({
       height: Number,
     },
   ],
-  printable: { type: Boolean, default: false },
+  printable: String,
   printed: { type: Boolean, default: false },
   ordered: { type: Boolean, default: false },
+  eventId: Schema.Types.ObjectId,
+  event_info: {},
+  welcome_msg: {},
+  printLink: String,
 });
 
 module.exports = mongoose.model('Print', printSchema);
