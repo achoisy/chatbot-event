@@ -37,12 +37,12 @@
                   </div>
                   <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
                     <i class="material-icons">photo_album</i>
-                    <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Portrait" checked />
+                    <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Portrait" data-id={{this._id}} value="portrait" checked />
                     <label for="{{this._id}}Portrait">Portrait</label>
                   </div>
                   <div class="valign-wrapper col s12">
                     <i class="material-icons valign">panorama</i>
-                    <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Paysage" class="valign" />
+                    <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Paysage" data-id={{this._id}} value="paysage" />
                     <label for="{{this._id}}Paysage">Paysage</label>
                   </div>
                 </div>
@@ -52,12 +52,12 @@
                   </div>
                   <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
                     <i class="material-icons">screen_rotation</i>
-                    <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Automatique" checked />
+                    <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Automatique" value="oui" checked />
                     <label for="{{this._id}}Automatique">Automatique</label>
                   </div>
                   <div class="valign-wrapper col s12">
                     <i class="material-icons">screen_lock_rotation</i>
-                    <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Aucune" />
+                    <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Aucune" value="non"/>
                     <label for="{{this._id}}Aucune">Aucune</label>
                   </div>
                 </div>
@@ -65,10 +65,15 @@
               <div class="row">
                 <div class="col s12">
                   {{#if this.printable}}
+                  <div class="{{this._id}}Portrait" style="">
                     {{printButtonPortrait this}}
+                  </div>
+                  <div class="{{this._id}}Paysage" style="display: none;">
+                    {{printButtonPaysage this}}
+                  </div>
                   {{else}}
                   <blockquote>
-                    Désolé mais cette publication ne contient pas suffisamment de photo validées.
+                    Désolé mais cette publication ne contient pas suffisamment de photos validées pour étre imprimée.
                   </blockquote>
                   {{/if}}
 
@@ -117,12 +122,12 @@
                 </div>
                 <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
                   <i class="material-icons">photo_album</i>
-                  <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Portrait" checked />
+                  <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Portrait" data-id={{this._id}} value="portrait" checked />
                   <label for="{{this._id}}Portrait">Portrait</label>
                 </div>
                 <div class="valign-wrapper col s12">
                   <i class="material-icons valign">panorama</i>
-                  <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Paysage" class="valign" />
+                  <input name="{{this._id}}orientation" type="radio" id="{{this._id}}Paysage" data-id={{this._id}} value="paysage" />
                   <label for="{{this._id}}Paysage">Paysage</label>
                 </div>
               </div>
@@ -132,12 +137,12 @@
                 </div>
                 <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
                   <i class="material-icons">screen_rotation</i>
-                  <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Automatique" checked />
+                  <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Automatique" value="oui" checked />
                   <label for="{{this._id}}Automatique">Automatique</label>
                 </div>
                 <div class="valign-wrapper col s12">
                   <i class="material-icons">screen_lock_rotation</i>
-                  <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Aucune" />
+                  <input name="{{this._id}}rotation" type="radio" id="{{this._id}}Aucune" value="non" />
                   <label for="{{this._id}}Aucune">Aucune</label>
                 </div>
               </div>
@@ -145,10 +150,15 @@
             <div class="row">
               <div class="col s12">
                 {{#if this.printable}}
+                <div class="{{this._id}}Portrait" style="">
                   {{printButtonPortrait this}}
+                </div>
+                <div class="{{this._id}}Paysage" style="display: none;">
+                  {{printButtonPaysage this}}
+                </div>
                 {{else}}
                 <blockquote>
-                  Désolé mais cette publication ne contient pas suffisamment de photo validées.
+                  Désolé mais cette publication ne contient pas suffisamment de photos validées pour étre imprimée.
                 </blockquote>
                 {{/if}}
               </div>
@@ -235,10 +245,9 @@ var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(p,s);
 -->
 
 <script>
-var titreId ="";
 
 $("a[name='action']").click(function () {
-  titreId = "#" + $(this).data('id');
+  var titreId = "#" + $(this).data('id');
   const titretext = $(this).data('titre');
   $("input[name='titremodal']").val(titretext);
   $("a[name='titreUpdate']").click(function () {
@@ -246,12 +255,33 @@ $("a[name='action']").click(function () {
   });
 });
 
+$('input[type="radio"]').click(function(){
+  var portraitId = "." + $(this).data('id') + "Portrait";
+  var paysageId = "." + $(this).data('id') + "Paysage";
+  if($(this).attr("value")=="portrait"){
+    $(paysageId).hide();
+    $(portraitId).show();
+  }
+  if($(this).attr("value")=="paysage"){
+    $(portraitId).hide();
+    $(paysageId).show();
+  }
+});
 
+$(".peecho-print-button").click(function(){
+  var printId = $(this).data('reference');
+  var rotation = $("input[name="+ printId +"rotation]:checked").val();
+  var orientation = $("input[name="+ printId +"orientation]:checked").val();
+  var printTiltle = $("#" + printId + "titre").text();
 
+  $.post("https://monmagazine.fr/messenger/print/order",
+  { printid: printId , orientation: orientation , rotation_image: rotation , printTitle: printTiltle });
+});
 
 $(document).ready(function(){
     $('.collapsible').collapsible();
     $('.modal').modal();
+
   });
 
 </script>

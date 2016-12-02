@@ -8,6 +8,9 @@ const printSchema = new Schema({
   pdfUrl: String,
   pdfWidth: Number,
   pdfHeight: Number,
+  rotation_image: Boolean,
+  orientation: String,
+  printTitle: String,
   peechoOrderId: String,
   photoCount: Number,
   pageCount: Number,
@@ -26,10 +29,11 @@ const printSchema = new Schema({
   printable: { type: Boolean, default: false },
   printed: { type: Boolean, default: false },
   ordered: { type: Boolean, default: false },
+  preorder: { type: Boolean, default: false },
   eventId: Schema.Types.ObjectId,
   event_info: {},
   welcome_msg: {},
-  printLink: String,
+  create_date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('Print', printSchema);

@@ -24,6 +24,7 @@ const eventSchema = new Schema({
     audio: String,
   },
   event_publish: { type: Boolean, default: true },
+  create_date: { type: Date, default: Date.now },
 });
 eventSchema.plugin(mongoosastic);
 

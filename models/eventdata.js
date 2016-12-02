@@ -18,6 +18,7 @@ const eventDataSchema = new Schema({
   attach_to_validate: [Schema.Types.ObjectId],
   valide_attach: [Schema.Types.ObjectId],
   not_valide_attach: [Schema.Types.ObjectId],
+  create_date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('EventData', eventDataSchema);

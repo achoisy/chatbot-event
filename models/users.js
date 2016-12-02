@@ -31,6 +31,7 @@ const userSchema = new Schema({
     country: String,
     countryCode: String,
   },
+  create_date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('User', userSchema);
