@@ -58,14 +58,15 @@
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 
 <script>
-$("#close-btn").click(() => {
-  MessengerExtensions.requestCloseBrowser(function success() {
-    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}");
-  }, function error(err) {
-    window.close();
+
+$(function (){
+  $("#close-btn").click(() => {
+    MessengerExtensions.requestCloseBrowser(function success() {
+      
+    }, function error(err) {
+      window.close();
+    });
   });
 });
-
-
 
 </script>
