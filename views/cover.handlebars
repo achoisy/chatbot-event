@@ -44,6 +44,12 @@
     </div>
 </div>
 
+<footer id="footer" class="">
+  <div class="col s12 m3">
+    <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+  </div>
+</footer>
+
 <script>
 (function(d, s, id){
   var js, fjs = d.getElementsByTagName(s)[0];
@@ -109,5 +115,17 @@ $(function () {
         });
       },
   });
+});
+</script>
+
+<script>
+$("#close-btn").click(() => {
+  $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
+    .done(function( data ) {
+      MessengerExtensions.requestCloseBrowser(function success() {
+    	}, function error(err) {
+    		window.close();
+    	});
+    });
 });
 </script>
