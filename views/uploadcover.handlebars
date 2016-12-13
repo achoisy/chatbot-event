@@ -59,13 +59,11 @@
 
 <script>
 $("#close-btn").click(() => {
-  $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
-    .done(function( data ) {
-      MessengerExtensions.requestCloseBrowser(function success() {
-    	}, function error(err) {
-    		window.close();
-    	});
-    });
+  MessengerExtensions.requestCloseBrowser(function success() {
+    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
+  }, function error(err) {
+    window.close();
+  });
 });
 
 
