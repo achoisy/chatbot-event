@@ -62,10 +62,10 @@
 <script>
 $("#close-btn").click(() => {
 	console.log("Closing webview");
-  $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}");
 	MessengerExtensions.requestCloseBrowser(function success() {
-
+    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}");
 	}, function error(err) {
+    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}");
 		window.close();
 	});
 });
