@@ -60,7 +60,7 @@
 <script>
 $("#close-btn").click(() => {
   MessengerExtensions.requestCloseBrowser(function success() {
-    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
+    $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}");
   }, function error(err) {
     window.close();
   });
