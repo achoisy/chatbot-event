@@ -1,0 +1,189 @@
+<div class="container">
+  <div class="row">
+    <div class="col s4">
+      <img class="responsive-img" src="{{publication.welcome_msg.photo}}" >
+    </div>
+    <div class="col s8">
+      <div class="row">
+        <div class="col s12">
+          <span class="flow-text">{{publication.event_info.description}}</span>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="row">
+  <div class="col s12" style="padding-bottom: 10px;">
+    <h6>Titre :
+      <a class="modiftitre" href="#titre" style="color:#3B5998" data-id="{{publication._id}}titre" data-titre="{{publication.event_info.name}}" name="action">
+        <span id="{{publication._id}}titre">{{publication.event_info.name}}</span>
+        <i class="material-icons tiny">mode_edit</i>
+      </a>
+    </h6>
+  </div>
+  <div class="col s12 m4" style="padding-bottom: 10px;">
+    <div class="col s12">
+      <span>Orientation du magazine<i class="material-icons tiny"><a class="grey-text text-darken-3" href="#orientation">help</a></i></span>
+    </div>
+    <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
+      <i class="material-icons">photo_album</i>
+      <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Portrait" data-id={{publication._id}} value="portrait" checked />
+      <label for="{{publication._id}}Portrait">Portrait</label>
+    </div>
+    <div class="valign-wrapper col s12">
+      <i class="material-icons valign">panorama</i>
+      <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Paysage" data-id={{publication._id}} value="paysage" />
+      <label for="{{publication._id}}Paysage">Paysage</label>
+    </div>
+  </div>
+  <div class="col s12 m4">
+    <div class="col s12">
+      <span>Rotation des images<i class="material-icons tiny"><a class="grey-text text-darken-3" href="#rotation">help</a></i></span>
+    </div>
+    <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
+      <i class="material-icons">screen_rotation</i>
+      <input name="{{publication._id}}rotation" type="radio" id="{{publication._id}}Automatique" value="oui" checked />
+      <label for="{{publication._id}}Automatique">Automatique</label>
+    </div>
+    <div class="valign-wrapper col s12">
+      <i class="material-icons">screen_lock_rotation</i>
+      <input name="{{publication._id}}rotation" type="radio" id="{{publication._id}}Aucune" value="non"/>
+      <label for="{{publication._id}}Aucune">Aucune</label>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12">
+    {{#if publication.printable}}
+    <div class="{{publication._id}}Portrait" style="">
+      {{printButtonPortrait publication}}
+    </div>
+    <div class="{{publication._id}}Paysage" style="display: none;">
+      {{printButtonPaysage publication}}
+    </div>
+    {{else}}
+    <blockquote>
+      Désolé mais cette publication ne contient pas suffisamment de photos validées pour étre imprimée.
+    </blockquote>
+    {{/if}}
+
+  </div>
+</div>
+</div>
+  <footer id="footer" class="">
+    <div class="col s12 m3">
+      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+    </div>
+  </footer>
+
+!-- Modal Structure -->
+<div id="orientation" class="modal">
+  <div class="modal-content">
+    <h4>Orientation du magazine</h4>
+    <p>Choisissez l'orientation de votre magazine: Portrait ou Paysage.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Ok</a>
+  </div>
+</div>
+<div id="rotation" class="modal">
+  <div class="modal-content">
+    <h4>Rotation des images</h4>
+    <p>Activer la rotation automatique pour que vos photos soient orientées pour prendre le maximun de place sur la page.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Ok</a>
+  </div>
+</div>
+<div id="titre" class="modal">
+  <input type="hidden" value="" name="Idtitre" />
+  <input type="hidden" value="" name="Modtitre" />
+  <div class="modal-content">
+    <div class="input-field col s6">
+     <input value="Ceci est un test" id="titremodal" type="text" class="validate" name="titremodal">
+     <label class="active" for="titre">Titre de la publication</label>
+   </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat" name="titreUpdate">Ok</a>
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Annuler</a>
+  </div>
+</div>
+
+<!-- End Modal Structure -->
+
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+</script>
+
+<script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/upload.js"></script>
+
+<!-- TEST PEECHO PLUGIN-->
+<script type="text/javascript">
+(function() {
+var p=document.createElement("script");p.type="text/javascript";p.async=true;
+var h=("https:"==document.location.protocol?"https://":"http://");
+p.src=h+"d2bqfg1o8jltul.cloudfront.net/button/script/1480324358479493.js";
+var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(p,s);
+}).call(this);
+</script>
+
+
+<!-- LIVE PEECHO PLUGIN
+<script type="text/javascript">
+(function() {
+var p=document.createElement("script");p.type="text/javascript";p.async=true;
+var h=("https:"==document.location.protocol?"https://":"http://");
+p.src=h+"d3aln0nj58oevo.cloudfront.net/button/script/147991051526511325.js";
+var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(p,s);
+}).call(this);
+</script>
+-->
+
+<script>
+
+$("a[name='action']").click(function () {
+  var titreId = "#" + $(this).data('id');
+  const titretext = $(this).data('titre');
+  $("input[name='titremodal']").val(titretext);
+  $("a[name='titreUpdate']").click(function () {
+    $(titreId).text($("input[name='titremodal']").val());
+  });
+});
+
+$('input[type="radio"]').click(function(){
+  var portraitId = "." + $(this).data('id') + "Portrait";
+  var paysageId = "." + $(this).data('id') + "Paysage";
+  if($(this).attr("value")=="portrait"){
+    $(paysageId).hide();
+    $(portraitId).show();
+  }
+  if($(this).attr("value")=="paysage"){
+    $(portraitId).hide();
+    $(paysageId).show();
+  }
+});
+
+$(".peecho-print-button").click(function(){
+  var printId = $(this).data('reference');
+  var rotation = $("input[name="+ printId +"rotation]:checked").val();
+  var orientation = $("input[name="+ printId +"orientation]:checked").val();
+  var printTiltle = $("#" + printId + "titre").text();
+
+  $.post("https://monmagazine.fr/messenger/print/order",
+  { printid: printId , orientation: orientation , rotation_image: rotation , printTitle: printTiltle });
+});
+
+$(document).ready(function(){
+    $('.modal').modal();
+
+  });
+
+</script>

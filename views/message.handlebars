@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="row section">
+    <div class="col S12">
+      <h4 class="light-blue-text text-darken-4">{{message}}</h4>
+    </div>
+  </div>
+</div>
+  <footer id="footer" class="">
+    <div class="col s12 m3">
+      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+    </div>
+  </footer>
+
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+</script>
+
+<script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/upload.js"></script>
