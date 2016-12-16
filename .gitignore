@@ -84,5 +84,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 .env
-frontend
+
 production-key.txt
+
+imagestock
+pdf

@@ -23,6 +23,7 @@ const eventSchema = new Schema({
     texte: String,
     audio: String,
   },
+  cover_public_id: String,
   event_publish: { type: Boolean, default: true },
   create_date: { type: Date, default: Date.now },
 });

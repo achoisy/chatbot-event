@@ -14,6 +14,7 @@ const printSchema = new Schema({
   peechoOrderId: String,
   photoCount: Number,
   pageCount: Number,
+  cover_public_id: String,
   photoList: [
     {
       imageId: Schema.Types.ObjectId,

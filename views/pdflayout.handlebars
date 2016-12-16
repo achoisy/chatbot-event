@@ -1,0 +1,9 @@
+<div class="cover" style="page-break-after:always;">
+  <img class="responsive-img" src="https://monmagazine.fr/messenger/images/{{print.cover_public_id}}.jpg">
+</div>
+
+{{#each print.photoList}}
+  <div class="attach"  style="page-break-after:always;">
+    <img class="responsive-img" src="https://monmagazine.fr/messenger/images/{{this.public_id}}.jpg">
+  </div>
+{{/each}}
