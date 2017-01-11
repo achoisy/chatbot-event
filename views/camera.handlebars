@@ -27,7 +27,7 @@
             <div class="row file-field input-field">
 
                 <div class="col s5">
-                    <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+                    <div id="selection" class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
                         <span>Selection</span>
                         <input id="fileUpload" type="file" name="file" accept="image/*" >
                     </div>
@@ -67,6 +67,10 @@
 
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 <script>
+
+$( "#image-holder" ).click( function() {
+  $( "#selection" ).click();
+});
 $("#fileUpload").on('change', function () {
 
         if (typeof (FileReader) != "undefined") {
@@ -106,6 +110,7 @@ $(function () {
       add: function (e, data) {
         $("a[name='action']").click(function () {
           $('.btn').addClass('disabled');
+          $('.input-field').addClass('disabled');
         	data.submit();
         });
       },
