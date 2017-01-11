@@ -123,7 +123,23 @@
 
 <script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
-<script type="text/javascript" src="https://monmagazine.fr/js/upload.js"></script>
+
+<script>
+$('#close-btn').click( function() {
+	console.log("Closing webview");
+  var isSupported = MessengerExtensions.isInExtension();
+
+  if (isSupported) {
+    MessengerExtensions.requestCloseBrowser(function success() {
+  	}, function error(err) {
+      window.open('','_self').close();
+  	});
+  } else {
+    window.open('','_self').close();
+  }
+
+});
+</script>
 
 <!-- TEST PEECHO PLUGIN-->
 <script type="text/javascript">

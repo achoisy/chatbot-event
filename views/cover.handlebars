@@ -116,10 +116,16 @@ $(function () {
 $("#close-btn").click(() => {
   $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
     .done(function( data ) {
-      MessengerExtensions.requestCloseBrowser(function success() {
-    	}, function error(err) {
-    		window.close();
-    	});
+      var isSupported = MessengerExtensions.isInExtension();
+
+      if (isSupported) {
+        MessengerExtensions.requestCloseBrowser(function success() {
+      	}, function error(err) {
+          window.open('','_self').close();
+      	});
+      } else {
+        window.open('','_self').close();
+      }
     });
 });
 </script>
