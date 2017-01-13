@@ -31,7 +31,7 @@
     </div>
     <div class="valign-wrapper col s12">
       <i class="material-icons valign">panorama</i>
-      <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Paysage" data-id={{publication._id}} value="paysage" />
+      <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Paysage" data-id={{publication._id}} value="landscape" />
       <label for="{{publication._id}}Paysage">Paysage</label>
     </div>
   </div>
@@ -181,7 +181,7 @@ $('input[type="radio"]').click(function(){
     $(paysageId).hide();
     $(portraitId).show();
   }
-  if($(this).attr("value")=="paysage"){
+  if($(this).attr("value")=="landscape"){
     $(portraitId).hide();
     $(paysageId).show();
   }
