@@ -2,3 +2,4 @@ apps:
   - script   : app.js
     instances: 3
     exec_mode: cluster
+    log_date_format : DD-MM HH:mm:ss.SSS
