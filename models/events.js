@@ -4,14 +4,14 @@ const mongoosastic = require('mongoosastic');
 const Schema = mongoose.Schema;
 
 const eventSchema = new Schema({
-  senderid: { type: String, required: true, es_indexed: true },
+  senderid: { type: String, required: true },
   admin_list: [String],
   password: String,
   event_info: {
-    name: { type: String, es_indexed: true },
-    description: { type: String, es_indexed: true },
-    start_date: { type: Date, es_indexed: true },
-    end_date: { type: Date, es_indexed: true },
+    name: { type: String },
+    description: { type: String },
+    start_date: { type: Date },
+    end_date: { type: Date },
     location: {
       lat: Number,
       long: Number,
@@ -27,6 +27,7 @@ const eventSchema = new Schema({
   event_publish: { type: Boolean, default: true },
   create_date: { type: Date, default: Date.now },
 });
-eventSchema.plugin(mongoosastic);
+// eventSchema.plugin(mongoosastic);
+eventSchema.index({ 'event_info.name': 'text' });
 
 module.exports = mongoose.model('Event', eventSchema);
