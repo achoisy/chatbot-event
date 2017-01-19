@@ -66,6 +66,11 @@
 
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 <script>
+
+$( "#image-holder" ).click( function() {
+  $( "#fileUpload" ).click();
+});
+
 $("#fileUpload").on('change', function () {
 
         if (typeof (FileReader) != "undefined") {
@@ -109,23 +114,5 @@ $(function () {
         });
       },
   });
-});
-</script>
-
-<script>
-$("#close-btn").click(() => {
-  $.get("https://monmagazine.fr/messenger/uploadcover/{{senderid}}")
-    .done(function( data ) {
-      var isSupported = MessengerExtensions.isInExtension();
-
-      if (isSupported) {
-        MessengerExtensions.requestCloseBrowser(function success() {
-      	}, function error(err) {
-          window.open('','_self').close();
-      	});
-      } else {
-        window.open('','_self').close();
-      }
-    });
 });
 </script>

@@ -65,11 +65,12 @@ $("#close-btn").click(() => {
 
       if (isSupported) {
         MessengerExtensions.requestCloseBrowser(function success() {
-        }, function error(err) {
+      	}, function error(err) {
           window.open('','_self').close();
-        });
+      	});
       } else {
         window.open('','_self').close();
+        window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
       }
     });
 });
