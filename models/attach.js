@@ -23,6 +23,10 @@ const attachSchema = new Schema({
   tags: [String],
   bytes: Number,
   path: String,
+  dateTimeOriginal: { type: Date, index: true },
+  model: String,
+  make: String,
+  orientation: String,
   meta: {},
 });
 
