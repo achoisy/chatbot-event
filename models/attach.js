@@ -11,7 +11,6 @@ const attachSchema = new Schema({
   full_url: { type: String },
   optimiseImageUrl: String,
   thumbnail_url: { type: String },
-  thumbnail_img: { data: Buffer, contentType: String },
   author_pic: String,
   message: { type: String, maxlength: 120 },
   public_id: { type: String },
