@@ -9,5 +9,6 @@
       "linebreak-style": ["error", "windows"],
       "quotes": "off",
       "no-unused-vars": ["warn"],
+      "no-param-reassign": ["error", { "props": false }],
   }
 }
