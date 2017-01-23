@@ -1,3 +1,13 @@
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
 #image-holder {
 
 }
@@ -15,15 +25,27 @@
 
 .btn-fullblock {
   width: 100%;
+  height: 46px;
+  line-height: 46px;
 }
 
+.image-rotate90l {  /* Orientation=8 */
+  transform: rotate(270deg);
+}
+.image-rotate90r {  /* Orientation=6 */
+  transform: rotate(90deg);
+  max-width: 680px;
+}
+.image-rotate180 {  /* Orientation=3 */
+  transform: rotate(180deg);
+}
 #footer {
    position:fixed;
    left:0px;
    bottom:0px;
    width:100%;
    background:#ffffff;
-   padding: 10px 10px 10px 10px;
+   padding: 0px 0px 0px 0px;
    box-shadow: 0px -3px 3px 0px #cfcfcf;
    z-index:10;
 }

@@ -1,49 +1,45 @@
-<div class="container valign-wrapper">
+<main class="valign-wrapper">
     <div class="row section valign">
-
-        <form id="upload-form" action="https://monmagazine.fr/messenger/uploads/" method="post" class="col s12">
-
+        <form id="upload-form" action="https://monmagazine.fr/messenger/uploads/" method="post" >
             <input type="hidden" value= {{eventid}} name="eventid" />
             <input type="hidden" value= {{senderid}} name="senderid" />
-            <input type="hidden" value= '' name="usermessage" />
-            <input type="hidden" value= '' name="uploadresult" />
+            <input type="hidden" value='' name="usermessage" />
+            <input type="hidden" value='' name="uploadresult" />
 
-            <div class="row">
+            <div class="col s12 m10 offset-m1">
                 <div id="image-holder">
                     <img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />
                 </div>
-                <div class="progress">
-                  <div id="progressbar" class="determinate" style="width: 0%"></div>
-                </div>
             </div>
-
-            <div class="row">
-                <div class="input-field col s12">
-                    <textarea id="message" class="materialize-textarea" length="120"></textarea>
-                    <label for="message">Texte de publication:</label>
-                </div>
-            </div>
-
-            <div class="row file-field input-field">
-
-                <div class="col s5">
-                    <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
-                        <span>Selection</span>
-                        <input id="fileUpload" type="file" name="file" accept="image/*" >
-                    </div>
-                </div>
-
-                <div class="col s7">
-                    <a id="send-btn" class="btn waves-effect waves-light light-blue darken-4 btn-fullblock disabled" name="action">Envoyer
-                      <i class="material-icons right">send</i>
-                    </a>
-                </div>
-
-            </div>
-        </form>
-
     </div>
-</div>
+</main>
+<footer class="">
+  <div class="row">
+      <div class="input-field col s12">
+          <textarea id="message" class="materialize-textarea" length="120"></textarea>
+          <label for="message">Texte de publication:</label>
+      </div>
+  </div>
+    <div class="row file-field input-field" style="margin-bottom: 4px; margin-top: 4px;">
+        <div class="col s5">
+            <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+                <span>Selection</span>
+                <input id="fileUpload" type="file" name="file" accept="image/*">
+            </div>
+        </div>
+        <div class="col s7">
+            <a id="send-btn" class="btn waves-effect waves-light light-blue darken-4 btn-fullblock disabled" name="action">Envoyer
+                        <i class="material-icons right">send</i>
+                      </a>
+        </div>
+    </div>
+    <div class="progress" style="margin-top: 0px; margin-bottom: 0px; height: 10px;">
+        <div id="progressbar" class="determinate" style="width: 0%"></div>
+    </div>
+</footer>
+</form>
+
+
 
 <!-- Modal Structure -->
 <div id="modalinfo" class="modal">
@@ -102,6 +98,13 @@ $("#fileUpload").on('change', function () {
                 // console.log(EXIF.pretty(img));
                 if (allMetaData.DateTimeOriginal) {
                   $('#send-btn').removeClass("disabled");
+                  if (allMetaData.Orientation == 8) {
+                    img.addClass('image-rotate90l')
+                  } else if (allMetaData.Orientation == 6) {
+                    img.addClass('image-rotate90r')
+                  } else if (allMetaData.Orientation == 3) {
+                    img.addClass('image-rotate180')
+                  }
                 } else {
                   $('#send-btn').addClass('disabled');
                   $('#modalinfo').modal('open');
@@ -144,7 +147,7 @@ $('.modal-action').click( function() {
   var image_holder = $("#image-holder");
   image_holder.empty();
   imgOrigin = $('<img />');
-  
+
   imgOrigin.prop("src", "https://monmagazine.fr/images/square/add_photo.png");
   imgOrigin.prop("class", "responsive-img" );
   imgOrigin.src = imgOrigin.prop("src");
