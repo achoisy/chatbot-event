@@ -74,11 +74,15 @@ $('#close-btn').click( function() {
   if (isSupported) {
     MessengerExtensions.requestCloseBrowser(function success() {
   	}, function error(err) {
-      window.open('','_self').close();
+      window.close();
   	});
   } else {
-    window.open('','_self').close();
-    window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+    var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (iOS) {
+      window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+    } else {
+      window.close();
+    }
   }
 
 });

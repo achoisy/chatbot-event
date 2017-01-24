@@ -3,7 +3,7 @@
   <h5 style="text-align: center;margin-bottom: 0px;" class="light-blue-text text-darken-4">Merci, votre photo est enregistrée.</h5>
   <p style="text-align: center;margin-top: 0px;margin-right: 5px;margin-left: 5px;">Vous serez averti(e) par message de la validation de votre photo par le propriétaire de la publication.</P>
 </header>
-<main class="valign-wrapper">
+<main class="valign-wrapper" style="margin-bottom: 30px;">
     <div class="row section">
         <div class="col s12 m6">
             <div class="card">
@@ -38,7 +38,7 @@
         </div>
     </div>
 </main>
-<footer class="">
+<footer id="footer" class="">
     <div class="row" style="margin-bottom: 0px;">
         <div class="col s12" style="padding-right: 0px;padding-left: 0px;">
             <a id="close-btn" class="btn light-blue darken-4 btn-fullblock">Terminer</a>
@@ -55,8 +55,10 @@
   </div>
 </div>
   <footer id="footer" class="">
-    <div class="col s12 m3">
-      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+    <div class="row" style="margin-bottom: 0px;">
+        <div class="col s12" style="padding-right: 0px;padding-left: 0px;">
+            <a id="close-btn" class="btn light-blue darken-4 btn-fullblock">Terminer</a>
+        </div>
     </div>
   </footer>
 {{/if}}
@@ -82,11 +84,15 @@ $('#close-btn').click( function() {
   if (isSupported) {
     MessengerExtensions.requestCloseBrowser(function success() {
   	}, function error(err) {
-      window.open('','_self').close();
+      window.close();
   	});
   } else {
-    window.open('','_self').close();
-    window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+    var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (iOS) {
+      window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+    } else {
+      window.close();
+    }
   }
 
 });

@@ -1,32 +1,41 @@
 {{#if eventImage}}
-<div class="container padding-btn">
+<header>
+  <h5 style="text-align: center;margin-bottom: 0px;" class="light-blue-text text-darken-4">Merci, votre photo est enregistrée.</h5>
+  <p style="text-align: center;margin-top: 0px;margin-right: 5px;margin-left: 5px;">Cette photo sera utilisée comme photo de couverture de la publication.</P>
+</header>
+<main class="valign-wrapper" style="margin-bottom: 30px;">
     <div class="row section">
-      <div class="col s12 m6">
-          <div class="card">
-              <div class="card-image waves-effect waves-block waves-light">
-                  <img class="activator" src="https://monmagazine.fr/messenger/proxied_image/{{eventImage.cover_public_id}}">
-              </div>
-              <div class="card-content">
-                  <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{eventImage.event_info.description}}<i class="material-icons right">more_horiz</i></span>
-              </div>
-              <div class="card-reveal">
-                <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
-                <div class="row ">
-                  <div class="col s12 m10">
-                    <span class="grey-text text-darken-4 flow-text">
-                      {{eventImage.welcome_msg.texte}}
-                    </span>
-                  </div>
-              </div>
-          </div>
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-image waves-effect waves-block waves-light">
+                    <img class="activator" src="https://monmagazine.fr/messenger/proxied_image/{{eventImage.welcome_msg.cover_public_id}}">
+                </div>
+                <div class="card-content">
+                    <span class="activator grey-text text-darken-4" style="text-overflow: ellipsis;">{{eventImage.event_info.description}}<i class="material-icons right">more_horiz</i></span>
+                </div>
+                <div class="card-reveal">
+                    <span class="card-title grey-text text-darken-4">Commentaire<i class="material-icons right">close</i></span>
+                    <div class="row ">
+                        <div class="col s12 m10">
+                            <span class="grey-text text-darken-4 flow-text">
+                    {{eventImage.welcome_msg.texte}}
+                  </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</main>
+
+
 
 <footer id="footer" class="">
-  <div class="col s12 m3">
-    <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
-  </div>
+    <div class="row" style="margin-bottom: 0px;">
+        <div class="col s12" style="padding-right: 0px;padding-left: 0px;">
+            <a id="close-btn" class="btn light-blue darken-4 btn-fullblock">Terminer</a>
+        </div>
+    </div>
 </footer>
 
 {{else}}
@@ -38,8 +47,10 @@
   </div>
 </div>
   <footer id="footer" class="">
-    <div class="col s12 m3">
-      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+    <div class="row" style="margin-bottom: 0px;">
+        <div class="col s12" style="padding-right: 0px;padding-left: 0px;">
+            <a id="close-btn" class="btn light-blue darken-4 btn-fullblock">Terminer</a>
+        </div>
     </div>
   </footer>
 {{/if}}
@@ -66,11 +77,15 @@ $("#close-btn").click(() => {
       if (isSupported) {
         MessengerExtensions.requestCloseBrowser(function success() {
       	}, function error(err) {
-          window.open('','_self').close();
+          window.close();
       	});
       } else {
-        window.open('','_self').close();
-        window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (iOS) {
+          window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+        } else {
+          window.close();
+        }
       }
     });
 });

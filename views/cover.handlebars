@@ -1,48 +1,44 @@
-<div class="container valign-wrapper">
-    <div class="row section valign">
+<main class="valign-wrapper">
+  <div class="row section valign">
+    <form id="upload-form" action="https://monmagazine.fr/messenger/uploadcover/" method="post">
+          <input type="hidden" value= {{senderid}} name="senderid" />
+          <input type="hidden" value= '' name="usermessage" />
+          <input type="hidden" value= '' name="uploadresult" />
 
-        <form id="upload-form" action="https://monmagazine.fr/messenger/uploadcover/" method="post" class="col s12">
+          <div class="col s12 m10 offset-m1">
+              <div id="image-holder">
+                  <img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />
+              </div>
+          </div>
+  </div>
+</main>
 
-            <input type="hidden" value= {{senderid}} name="senderid" />
-            <input type="hidden" value= '' name="usermessage" />
-            <input type="hidden" value= '' name="uploadresult" />
+<footer class="">
+  <div class="row">
+      <div class="input-field col s12">
+          <textarea id="message" class="materialize-textarea" length="120"></textarea>
+          <label for="message">Texte de publication:</label>
+      </div>
+  </div>
+  <div class="row file-field input-field" style="margin-bottom: 4px; margin-top: 4px;">
+      <div class="col s5">
+          <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+              <span>Selection</span>
+              <input id="fileUpload" type="file" name="file" accept="image/*">
+          </div>
+      </div>
+      <div class="col s7">
+          <a id="send-btn" class="btn waves-effect waves-light light-blue darken-4 btn-fullblock disabled" name="action">Envoyer
+                      <i class="material-icons right">send</i>
+                    </a>
+      </div>
+  </div>
+  <div class="progress" style="margin-top: 0px; margin-bottom: 0px; height: 10px;">
+      <div id="progressbar" class="determinate" style="width: 0%"></div>
+  </div>
+</footer>
+    </form>
 
-            <div class="row">
-                <div id="image-holder">
-                    <img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />
-                </div>
-                <div class="progress">
-                  <div id="progressbar" class="determinate" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="input-field col s12">
-                    <textarea id="message" class="materialize-textarea" length="120"></textarea>
-                    <label for="message">Texte de publication:</label>
-                </div>
-            </div>
-
-            <div class="row file-field input-field">
-
-                <div class="col s5">
-                    <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
-                        <span>Selection</span>
-                        <input id="fileUpload" type="file" name="file" accept="image/*" >
-                    </div>
-                </div>
-
-                <div class="col s7">
-                    <a class="btn waves-effect waves-light light-blue darken-4 btn-fullblock" name="action">Envoyer
-              <i class="material-icons right">send</i>
-            </a>
-                </div>
-
-            </div>
-        </form>
-
-    </div>
-</div>
 
 <script>
 (function(d, s, id){
@@ -63,7 +59,7 @@
 <script src="https://monmagazine.fr/js/blueimp-file-upload/js/jquery.fileupload-process.js"            type="text/javascript"></script>
 <script src="https://monmagazine.fr/js/blueimp-file-upload/js/jquery.fileupload-image.js"              type="text/javascript"></script>
 <script src="https://monmagazine.fr/js/cloudinary-jquery-file-upload/cloudinary-jquery-file-upload.js" type="text/javascript"></script>
-
+<script src="https://monmagazine.fr/js/exif.js"                                                        type="text/javascript"></script>
 <script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 <script>
 
@@ -73,24 +69,37 @@ $( "#image-holder" ).click( function() {
 
 $("#fileUpload").on('change', function () {
 
-        if (typeof (FileReader) != "undefined") {
+  if (typeof (FileReader) != "undefined") {
 
-            var image_holder = $("#image-holder");
-            image_holder.empty();
+      var image_holder = $("#image-holder");
+      var img = null;
+      image_holder.empty();
 
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                $("<img />", {
-                    "src": e.target.result,
-                    "class": "responsive-img"
-                }).appendTo(image_holder);
-
-            }
-            image_holder.show();
-            reader.readAsDataURL($(this)[0].files[0]);
-        } else {
-            alert("This browser does not support FileReader.");
-        }
+      img = $('<img />');
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        img.prop("src", e.target.result);
+        img.prop("class", "responsive-img" );
+        img.src = img.prop("src");
+        img.appendTo(image_holder);
+        EXIF.getData(img, function() {
+          var allMetaData = EXIF.getAllTags(this);
+          // console.log(EXIF.pretty(img));
+          $('#send-btn').removeClass("disabled");
+          if (allMetaData.Orientation == 8) {
+            img.addClass('image-rotate90l')
+          } else if (allMetaData.Orientation == 6) {
+            img.addClass('image-rotate90r')
+          } else if (allMetaData.Orientation == 3) {
+            img.addClass('image-rotate180')
+          }
+        });
+      }
+      image_holder.show();
+      reader.readAsDataURL($(this)[0].files[0]);
+  } else {
+      alert("This browser does not support FileReader.");
+  }
 });
 
 $(function () {
