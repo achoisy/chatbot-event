@@ -96,9 +96,8 @@ $("#fileUpload").on('change', function () {
               img.appendTo(image_holder);
               EXIF.getData(img, function() {
                 var allMetaData = EXIF.getAllTags(this);
-                // console.log(EXIF.pretty(img));
+                 console.log(EXIF.pretty(img));
                 if (allMetaData.DateTimeOriginal) {
-                  $('#send-btn').removeClass("disabled");
                   if (allMetaData.Orientation == 8) {
                     img.addClass('image-rotate90l')
                   } else if (allMetaData.Orientation == 6) {
@@ -106,6 +105,7 @@ $("#fileUpload").on('change', function () {
                   } else if (allMetaData.Orientation == 3) {
                     img.addClass('image-rotate180')
                   }
+                  $('#send-btn').removeClass("disabled");
                 } else {
                   $('#send-btn').addClass('disabled');
                   $('#modalinfo').modal('open');
