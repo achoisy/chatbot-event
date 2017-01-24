@@ -8,6 +8,7 @@ const userSchema = new Schema({
     first_name: String,
     last_name: String,
     profile_pic: String,
+    profile_public_id: String,
     locale: String,
     timezone: String,
     gender: String,
