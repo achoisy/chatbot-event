@@ -11,7 +11,7 @@ const attachSchema = new Schema({
   full_url: { type: String },
   optimiseImageUrl: String,
   thumbnail_url: { type: String },
-  author_pic: String,
+  author_pic: String, // cloudinary public Id
   message: { type: String, maxlength: 120 },
   public_id: { type: String },
   version: Number,
