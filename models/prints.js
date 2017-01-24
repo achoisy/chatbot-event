@@ -34,6 +34,8 @@ const printSchema = new Schema({
       public_id: { type: String },
       width: Number,
       height: Number,
+      dateTimeOriginal: Date,
+      dateTimeHumain: String,
     },
   ],
   printable: { type: Boolean, default: false },
