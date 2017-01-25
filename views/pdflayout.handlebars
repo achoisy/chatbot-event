@@ -1,60 +1,38 @@
 {{#each print }}
-<div class="container" >
-  <div class="columns">
-    <div class="column col-12" style="page-break-after:always;">
-      <div class="card">
-          <div class="card-header">
-              <h4 class="card-title">{{this.printTitle}}</h4>
-              <h6 class="card-meta">monmagazine.fr</h6>
-          </div>
-          <div class="card-image">
-              <img src="{{this.eventId}}/{{this.cover_public_id}}.jpg" class="img-responsive" />
-          </div>
-          <div class="card-body">
-              {{this.description}}
-          </div>
-          <div class="card-footer">
-          </div>
+<div class="image-print" style="page-break-after:always;">
+  <div class="insider-top">
+    <img src="{{mainUrl}}cover/logo-MonMagazine-fr-print.png" class="img-responsive" />
+  </div>
+  <img src="{{mainUrl}}{{this.eventId}}/{{this.cover_public_id}}.jpg" class="img-responsive" />
+  <div class="insider-bottom text-center" style="padding-top: 15px;padding-bottom: 15px;">
+    <h4 class=""style="margin-top: 0px;">{{this.printTitle}}</h4>
+    <p style="margin-bottom: 0px;"> {{this.description}} </p>
+  </div>
+</div>
+
+  {{#each this.photoList }}
+  <div class="image-print" style="page-break-after:always;">
+    <img src="{{../mainUrl}}{{../eventId}}/{{this.public_id}}.jpg" class="img-responsive"/>
+    <div class="insider-bottom container" style="padding-top: 0;">
+      <div class="columns col-gapless">
+        <div class="column col-2 text-right">
+          <figure class="avatar avatar-xl" style="margin-right: 20px;">
+            <img src="{{../mainUrl}}profile_image/{{this.author_pic}}.jpg" />
+          </figure>
+        </div>
+        <div class="column col-9" style="padding-top: 20px;">
+          <p style="margin-bottom: 0px;"> {{this.message}} </p>
+          <cite>- {{this.user_profile.first_name}} {{this.user_profile.last_name}}, le {{this.dateTimeHumain}}</cite>
+        </div>
       </div>
     </div>
   </div>
-
-
-  {{#each this.photoList }}
-        <div class="row">
-            <div class="col s12" style="page-break-after:always;">
-                <div class="card">
-                    <div class="card-image">
-                        <img src="{{../eventId}}/{{this.public_id}}.jpg">
-                        <span class="card-title">Card Title</span>
-                    </div>
-                    <div class="card-content">
-                        <p>{{this.message}}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="columns">
-          <div class="column col-12" style="page-break-after:always;">
-            <div class="card">
-                <div class="card-image">
-                    <img src="{{../eventId}}/{{this.public_id}}.jpg" class="img-responsive" />
-                </div>
-                <div class="card-header">
-                  <figure class="avatar avatar-xl">
-                    <img src="profile_image/{{this.author_pic}}.jpg" />
-                  </figure>
-                    <h6 class="card-meta">{{this.user_profile.first_name}} {{this.user_profile.last_name}}</h6>
-                    <h4 class="card-title">{{this.dateTimeHumain}}</h4>
-                </div>
-                <div class="card-body">
-                    {{this.message}}
-                </div>
-                <div class="card-footer">
-                </div>
-            </div>
-          </div>
-        </div>
   {{/each}}
-</div>
+
+  <div class="image-print text-center" style="page-break-after:always; padding: 30%;">
+    <img src="{{mainUrl}}cover/messenger_code_monmagazine-fr2.png" class="img-responsive" />
+    <p class="mt-10">MonMagazine.fr by Alexandre Choisy</p>
+  </div>
+
+
 {{/each}}

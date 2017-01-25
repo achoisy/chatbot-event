@@ -25,6 +25,7 @@ const app = express();
 // app.use(express.static('public'));
 // set the static files location for our Ember application
 // app.use(express.static(path.join(__dirname + '/client')));
+// app.use('/messenger/pdf', express.static(path.join(__dirname, '/imagestock')));
 app.use('/messenger/pdf', express.static(path.join(__dirname, '/pdf')));
 app.use('/messenger/images', express.static(path.join(__dirname, '/imagestock')));
 

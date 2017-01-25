@@ -42,6 +42,7 @@ const printSchema = new Schema({
   printed: { type: Boolean, default: false },
   ordered: { type: Boolean, default: false },
   preorder: { type: Boolean, default: false },
+  peecho_url: String,
   eventId: Schema.Types.ObjectId,
   event_info: {},
   welcome_msg: {},
