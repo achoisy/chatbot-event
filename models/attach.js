@@ -21,7 +21,7 @@ const attachSchema = new Schema({
     timezone: String,
     gender: String,
   },
-  message: { type: String, maxlength: 120 },
+  message: { type: String, maxlength: 240 },
   public_id: { type: String },
   version: Number,
   signature: String,

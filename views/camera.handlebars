@@ -17,7 +17,7 @@
 <footer class="">
     <div class="row">
         <div class="input-field col s12">
-            <textarea id="message" class="materialize-textarea" length="120"></textarea>
+            <textarea id="message" class="materialize-textarea" length="240"></textarea>
             <label for="message">Texte de publication:</label>
         </div>
     </div>
@@ -123,7 +123,7 @@ $(function () {
   $('#fileUpload').unsigned_cloudinary_upload("xzmch7ns", { cloud_name: 'monmagazine-fr' })
   .bind('cloudinarydone', function(e, data) {
     $('input[name=uploadresult]').val(JSON.stringify(data.result));
-    $('input[name=usermessage]').val($("textarea#message").val().substr(0, 120));
+    $('input[name=usermessage]').val($("textarea#message").val().substr(0, 240));
     $("#upload-form").submit();
   })
   .bind('cloudinaryprogress', function(e, data) {
