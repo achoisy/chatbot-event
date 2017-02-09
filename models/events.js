@@ -24,7 +24,14 @@ const eventSchema = new Schema({
   },
   cover_public_id: String,
   event_publish: { type: Boolean, default: true },
+  event_cloture: { type: Boolean, default: false },
   create_date: { type: Date, default: Date.now },
+  moderators: [String],
+  join_users: [String],
+  banned_users: [String],
+  attach_to_validate: [Schema.Types.ObjectId],
+  valide_attach: [Schema.Types.ObjectId],
+  not_valide_attach: [Schema.Types.ObjectId],
 });
 // eventSchema.plugin(mongoosastic);
 eventSchema.index({ 'event_info.name': 'text' });
