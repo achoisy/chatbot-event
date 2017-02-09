@@ -25,6 +25,7 @@ const eventSchema = new Schema({
   cover_public_id: String,
   event_publish: { type: Boolean, default: true },
   event_cloture: { type: Boolean, default: false },
+  event_printId: Schema.Types.ObjectId,
   create_date: { type: Date, default: Date.now },
   moderators: [String],
   join_users: [String],

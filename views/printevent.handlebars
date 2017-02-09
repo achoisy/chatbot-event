@@ -14,41 +14,8 @@
   <div class="row">
     <div class="col s12" style="padding-bottom: 10px;">
       <h6>Titre :
-        <a class="modiftitre" href="#titre" style="color:#3B5998" data-id="{{publication._id}}titre" data-titre="{{publication.event_info.name}}" name="action">
-          <span id="{{publication._id}}titre">{{publication.event_info.name}}</span>
-          <i class="material-icons tiny">mode_edit</i>
-        </a>
+        <span id="{{publication._id}}titre">{{publication.event_info.name}}</span>
       </h6>
-    </div>
-    <div class="col s12 m4" style="padding-bottom: 10px;">
-      <div class="col s12">
-        <span>Orientation du magazine<i class="material-icons tiny"><a class="grey-text text-darken-3" href="#orientation">help</a></i></span>
-      </div>
-      <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
-        <i class="material-icons">photo_album</i>
-        <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Portrait" data-id={{publication._id}} value="portrait" checked />
-        <label for="{{publication._id}}Portrait">Portrait</label>
-      </div>
-      <div class="valign-wrapper col s12">
-        <i class="material-icons valign">panorama</i>
-        <input name="{{publication._id}}orientation" type="radio" id="{{publication._id}}Paysage" data-id={{publication._id}} value="landscape" disabled="disabled"/>
-        <label for="{{publication._id}}Paysage">Paysage</label>
-      </div>
-    </div>
-    <div class="col s12 m4">
-      <div class="col s12">
-        <span>Rotation des images<i class="material-icons tiny"><a class="grey-text text-darken-3" href="#rotation">help</a></i></span>
-      </div>
-      <div class="valign-wrapper col s12" style="padding-bottom: 4px;">
-        <i class="material-icons">screen_rotation</i>
-        <input name="{{publication._id}}rotation" type="radio" id="{{publication._id}}Automatique" value="oui" disabled="disabled"/>
-        <label for="{{publication._id}}Automatique">Automatique</label>
-      </div>
-      <div class="valign-wrapper col s12">
-        <i class="material-icons">screen_lock_rotation</i>
-        <input name="{{publication._id}}rotation" type="radio" id="{{publication._id}}Aucune" value="non" checked/>
-        <label for="{{publication._id}}Aucune">Aucune</label>
-      </div>
     </div>
   </div>
 
@@ -63,7 +30,7 @@
       </div>
       {{else}}
       <blockquote>
-        Désolé mais cette publication ne contient pas suffisamment de photos validées pour étre imprimée.
+        Désolé mais cette publication n'a pas encore été clôturé et ne peut pas étre imprimée.
       </blockquote>
       {{/if}}
     </div>
@@ -201,18 +168,7 @@ $('input[type="radio"]').click(function(){
 });
 
 $(".peecho-print-button").click(function(){
-  var printId = $(this).data('reference');
-  var rotation = $("input[name="+ printId +"rotation]:checked").val();
-  var orientation = $("input[name="+ printId +"orientation]:checked").val();
-  var printTiltle = $("#" + printId + "titre").text();
 
-  $.post("https://monmagazine.fr/messenger/print/order",
-  { printid: printId , orientation: orientation , rotation_image: rotation , printTitle: printTiltle });
 });
-
-$(document).ready(function(){
-    $('.modal').modal();
-
-  });
 
 </script>
