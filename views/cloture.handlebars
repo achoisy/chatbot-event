@@ -1,0 +1,99 @@
+{#if eventImage}}
+<div class="container padding-btn">
+    <div class="row section">
+      {{#each eventImage}}
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-image">
+                  <img src="https://monmagazine.fr/messenger/proxied_image/{{this.public_id}}" alt="{{this.message}}">
+                  <div class="fixed-action-btn horizontal click-to-toggle">
+                    <a class="btn-floating halfway-fab btn-large red">
+                      <i class="material-icons">menu</i>
+                    </a>
+                    <ul>
+                      <li><a class="btn-floating red"><i class="material-icons">insert_chart</i></a></li>
+                      <li><a class="btn-floating yellow darken-1"><i class="material-icons">format_quote</i></a></li>
+                      <li><a class="btn-floating green"><i class="material-icons">publish</i></a></li>
+                      <li><a class="btn-floating blue"><i class="material-icons">attach_file</i></a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="row ">
+                    <div class="col s4 ">
+                      <img src="https://monmagazine.fr/messenger/profile_image/{{this.author_pic}}" alt="" class="responsive-img"> <!-- notice the "circle" class -->
+                    </div>
+                    <div class="col s8 ">
+                      <span class="grey-text text-darken-4 flow-text">
+                        {{this.message}}
+                      </span>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+      {{/each}}
+    </div>
+</div>
+
+<footer id="footer" class="">
+  <div class="col s12 m3">
+    <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+  </div>
+</footer>
+
+{{else}}
+<div class="container">
+  <div class="row section">
+    <div class="col S12">
+      <h4 class="light-blue-text text-darken-4">Pas de photo validé</h4>
+    </div>
+  </div>
+</div>
+  <footer id="footer" class="">
+    <div class="col s12 m3">
+      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+    </div>
+  </footer>
+{{/if}}
+
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+
+</script>
+
+<script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+<script src='https://monmagazine.fr/js/jquery.cloudinary.js' type='text/javascript'></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
+
+<script>
+
+$.cloudinary.config({ cloud_name: 'monmagazine-fr' });
+
+$('#close-btn').click( function() {
+
+  var isSupported = MessengerExtensions.isInExtension();
+
+  if (isSupported) {
+    MessengerExtensions.requestCloseBrowser(function success() {
+  	}, function error(err) {
+      window.close();
+  	});
+  } else {
+    var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (iOS) {
+      window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+    } else {
+      window.close();
+    }
+  }
+
+});
+
+</script>
