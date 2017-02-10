@@ -28,6 +28,8 @@ const app = express();
 // app.use('/messenger/pdf', express.static(path.join(__dirname, '/imagestock')));
 app.use('/messenger/pdf', express.static(path.join(__dirname, '/pdf')));
 app.use('/messenger/images', express.static(path.join(__dirname, '/imagestock')));
+app.use('/messenger/preview/pdf/js', express.static(path.join(__dirname, '/nginx/html/js')));
+app.use('/messenger/preview/pdf/sound', express.static(path.join(__dirname, '/nginx/html/sound')));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
