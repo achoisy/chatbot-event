@@ -47,24 +47,23 @@
 <div id="footer" class=" centered">
 
   <div class="btn-group btn-group-block">
-    <button id="close-btn" class="btn btn-haut">Annuler <i class="icon icon-undo"></i></button>
-    <button id="save-btn" class="btn btn-haut">Enregistrer <i class="icon icon-save"></i></button>
-    <button id="close-btn" class="btn btn-haut">Clôturer <i class="icon icon-lock"></i></button>
+    <button class="close-btn btn btn-haut">Annuler <i class="icon icon-undo"></i></button>
+    <button class="cloture-btn btn btn-haut">Clôturer <i class="icon icon-lock"></i></button>
   </div>
 </div>
 
 
 {{else}}
 <div class="container">
-  <div class="row section">
-    <div class="col S12">
-      <h4 class="light-blue-text text-darken-4">Pas de photo validé</h4>
+  <div class="columns">
+    <div class="column col-12">
+      <h4 >Pas de photo validé</h4>
     </div>
   </div>
 </div>
-  <footer id="footer" class="">
-    <div class="col s12 m3">
-      <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+  <footer id="footer" class="centered">
+    <div class="col s12 ">
+      <button class="close-btn btn btn-primary btn-block btn-haut">Fermer <i class="icon icon-close"></i></button>
     </div>
   </footer>
 {{/if}}
@@ -81,9 +80,8 @@
                 <p><button class="btn btn-primary btn-sm">supprimer<i class="icon icon-delete"></i></button> supprimer une photo.</p>
                 <p><button class="btn btn-primary btn-sm"><i class="icon icon-arrow_upward"></i>monter</button> monter la photo dans l'ordre de publication.</p>
                 <p><button class="btn btn-primary btn-sm"><i class="icon icon-arrow_downward"></i>descendre</button> descendre la photo dans l'ordre de publication.</p>
-                <p><button class="btn btn-sm">Annuler <i class="icon icon-undo"></i></button> annuler les modifications.</p>
-                <p><button class="btn btn-sm">Enregistrer <i class="icon icon-save"></i></button> enregistrer les modifications.</p>
-                <p><button class="btn btn-sm">Clôturer <i class="icon icon-lock"></i></button> clôturer la publication.</p>
+                <p><button class="btn btn-sm">Annuler <i class="icon icon-undo"></i></button> ferme la page sans enregistrer les modifications.</p>
+                <p><button class="btn btn-sm">Clôturer <i class="icon icon-lock"></i></button> Enregistrer les modifications et clôturer la publication.</p>
             </div>
         </div>
         <div class="modal-footer" style="padding-top: 0px;">
@@ -96,8 +94,8 @@
     <div class="modal-overlay"></div>
     <div class="modal-container" style="margin-right: 10px; margin-left: 10px;">
         <div class="modal-header">
-            <button class="btn btn-clear float-right close-modal"></button>
-            <div class="modal-title">Enregistrer</div>
+            <button class="btn btn-clear float-right close-modal close-btn"></button>
+            <div class="modal-title">Clôture de publication</div>
         </div>
         <div class="modal-body" style="padding-top: 0px;padding-bottom: 0px;">
             <div class="content">
@@ -105,7 +103,7 @@
             </div>
         </div>
         <div class="modal-footer" style="padding-top: 0px;">
-            <button class="btn btn-link close-modal">fermer</button>
+            <button class="btn btn-link close-modal close-btn">fermer</button>
         </div>
     </div>
 </div>
@@ -125,7 +123,7 @@
 
 <script>
 
-$('#close-btn').click( function() {
+$('.close-btn').click( function() {
   var isSupported = MessengerExtensions.isInExtension();
 
   if (isSupported) {
@@ -152,30 +150,15 @@ function updateBtn () {
   $('.move-down').last().addClass("hide");
 }
 
-// Mettre à jour le fichier photoArray.
-function updatePhotoArray () {
-  var postUrl= "https://monmagazine.fr/messenger/cloture/update/{{senderid}}/{{eventid}}";
+function cloturePub () {
+  var postUrl= "https://monmagazine.fr/messenger/cloture/close/{{senderid}}/{{eventid}}";
   var photoArray = []
   $('.photo-card').each(function(index){
     photoArray.push($(this).data("id"));
   });
   $.post(postUrl, { 'photoArray[]': photoArray }, function(){
     $('.modal-save').addClass("active");
-    $('.modal-save').find("p").text("Les modifications ont bien été enregistrées !");
-  })
-  .fail(function() {
-    $('.modal-save').addClass("active");
-    $('.modal-save').find("p").text("Une erreur est survenu... les modifications ne seront pas enregistrées.");
-  });
-}
-function cloturePub () {
-  var photoArray = []
-  $('.photo-card').each(function(index){
-    photoArray.push($(this).data("id"));
-  });
-  $.post("https://monmagazine.fr/messenger/cloture/update/", { 'photoArray[]': photoArray }, function(){
-    $('.modal-save').addClass("active");
-    $('.modal-save').find("p").text("Les modifications ont bien été enregistrées !");
+    $('.modal-save').find("p").text("Felicitation, votre Publication est cloturée!");
   })
   .fail(function() {
     $('.modal-save').addClass("active");
@@ -183,11 +166,8 @@ function cloturePub () {
   });
 }
 
-$('#save-btn').click( function() {
-  updatePhotoArray();
-});
 
-$('#close-btn').click( function() {
+$('.cloture-btn').click( function() {
   cloturePub();
 });
 
