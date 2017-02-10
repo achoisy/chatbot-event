@@ -1,46 +1,58 @@
-{#if eventImage}}
-<div class="container padding-btn">
-    <div class="row section">
+{{#if eventImage}}
+<div class="container">
+    <div class="columns" style="margin-bottom: 60px;">
       {{#each eventImage}}
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-image">
-                  <img src="https://monmagazine.fr/messenger/proxied_image/{{this.public_id}}" alt="{{this.message}}">
-                  <div class="fixed-action-btn horizontal click-to-toggle">
-                    <a class="btn-floating halfway-fab btn-large red">
-                      <i class="material-icons">menu</i>
-                    </a>
-                    <ul>
-                      <li><a class="btn-floating red"><i class="material-icons">insert_chart</i></a></li>
-                      <li><a class="btn-floating yellow darken-1"><i class="material-icons">format_quote</i></a></li>
-                      <li><a class="btn-floating green"><i class="material-icons">publish</i></a></li>
-                      <li><a class="btn-floating blue"><i class="material-icons">attach_file</i></a></li>
-                    </ul>
+        <div data-id={{this._id}} class="column col-12 photo-card">
+          <div class="card">
+              <div class="card-image">
+                  <img src="https://monmagazine.fr/messenger/proxied_image/{{this.public_id}}" class="img-responsive mt-10" />
+              </div>
+              <div class="card-body">
+                <div class="columns">
+                  <div class="column col-3">
+                    <img class="img-responsive" src="https://monmagazine.fr/messenger/profile_image/{{this.author_pic}}" />
+                  </div>
+                  <div class="column col-9">
+                    {{this.message}}
                   </div>
                 </div>
-                <div class="card-content">
-                  <div class="row ">
-                    <div class="col s4 ">
-                      <img src="https://monmagazine.fr/messenger/profile_image/{{this.author_pic}}" alt="" class="responsive-img"> <!-- notice the "circle" class -->
-                    </div>
-                    <div class="col s8 ">
-                      <span class="grey-text text-darken-4 flow-text">
-                        {{this.message}}
-                      </span>
-                    </div>
+              </div>
+              <div class="card-footer">
+                <div class="columns">
+                    {{#if @first}}
+                  <div class="column col-12">
+                      <button class="btn btn-primary btn-sm delete-btn">supprimer<i class="icon icon-delete"></i></button>
+                      <button class="btn btn-primary btn-sm float-right move-up hide"><i class="icon icon-arrow_upward"></i>monter</button>
+                      <button class="btn btn-primary btn-sm float-right move-down"><i class="icon icon-arrow_downward"></i>descendre</button>
+                    {{else if @last}}
+                    <div class="column col-12">
+                      <button class="btn btn-primary btn-sm delete-btn">supprimer<i class="icon icon-delete"></i></button>
+                      <button class="btn btn-primary btn-sm float-right move-up" style="margin-left: 5px;"><i class="icon icon-arrow_upward"></i>monter</button>
+                      <button class="btn btn-primary btn-sm float-right move-down hide"><i class="icon icon-arrow_downward"></i>descendre</button>
+                    {{else}}
+                    <div class="column col-12">
+                      <button class="btn btn-primary btn-sm delete-btn">supprimer<i class="icon icon-delete"></i></button>
+                      <button class="btn btn-primary btn-sm float-right move-up" style="margin-left: 5px;"><i class="icon icon-arrow_upward"></i>monter</button>
+                      <button class="btn btn-primary btn-sm float-right move-down"><i class="icon icon-arrow_downward"></i>descendre</button>
+                    {{/if}}
+                  </div>
                 </div>
-                </div>
-            </div>
+              </div>
+          </div>
         </div>
       {{/each}}
     </div>
 </div>
 
-<footer id="footer" class="">
-  <div class="col s12 m3">
-    <a  id="close-btn" class="btn light-blue darken-4 btn-fullblock">Fermer</a>
+<div id="footer" class=" centered">
+
+  <div class="btn-group btn-group-block">
+    <button id="close-btn" class="btn btn-haut">Annuler <i class="icon icon-undo"></i></button>
+    <button id="save-btn" class="btn btn-haut">Enregistrer <i class="icon icon-save"></i></button>
+    <button id="close-btn" class="btn btn-haut">Clôturer <i class="icon icon-lock"></i></button>
   </div>
-</footer>
+</div>
+
 
 {{else}}
 <div class="container">
@@ -57,6 +69,47 @@
   </footer>
 {{/if}}
 
+<div class="modal active">
+    <div class="modal-overlay"></div>
+    <div class="modal-container" style="margin-right: 10px; margin-left: 10px;">
+        <div class="modal-header">
+            <button class="btn btn-clear float-right close-modal"></button>
+            <div class="modal-title">Instruction d'utilisation:</div>
+        </div>
+        <div class="modal-body" style="padding-top: 0px;padding-bottom: 0px;min-height: 280px;">
+            <div class="content">
+                <p><button class="btn btn-primary btn-sm">supprimer<i class="icon icon-delete"></i></button> supprimer une photo.</p>
+                <p><button class="btn btn-primary btn-sm"><i class="icon icon-arrow_upward"></i>monter</button> monter la photo dans l'ordre de publication.</p>
+                <p><button class="btn btn-primary btn-sm"><i class="icon icon-arrow_downward"></i>descendre</button> descendre la photo dans l'ordre de publication.</p>
+                <p><button class="btn btn-sm">Annuler <i class="icon icon-undo"></i></button> annuler les modifications.</p>
+                <p><button class="btn btn-sm">Enregistrer <i class="icon icon-save"></i></button> enregistrer les modifications.</p>
+                <p><button class="btn btn-sm">Clôturer <i class="icon icon-lock"></i></button> clôturer la publication.</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding-top: 0px;">
+            <button class="btn btn-link close-modal">Ok, j'ai compris</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-save">
+    <div class="modal-overlay"></div>
+    <div class="modal-container" style="margin-right: 10px; margin-left: 10px;">
+        <div class="modal-header">
+            <button class="btn btn-clear float-right close-modal"></button>
+            <div class="modal-title">Enregistrer</div>
+        </div>
+        <div class="modal-body" style="padding-top: 0px;padding-bottom: 0px;">
+            <div class="content">
+                <p>test</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding-top: 0px;">
+            <button class="btn btn-link close-modal">fermer</button>
+        </div>
+    </div>
+</div>
+
 <script>
 (function(d, s, id){
   var js, fjs = d.getElementsByTagName(s)[0];
@@ -69,15 +122,10 @@
 </script>
 
 <script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
-<script src='https://monmagazine.fr/js/jquery.cloudinary.js' type='text/javascript'></script>
-<script type="text/javascript" src="https://monmagazine.fr/js/materialize.min.js"></script>
 
 <script>
 
-$.cloudinary.config({ cloud_name: 'monmagazine-fr' });
-
 $('#close-btn').click( function() {
-
   var isSupported = MessengerExtensions.isInExtension();
 
   if (isSupported) {
@@ -89,11 +137,78 @@ $('#close-btn').click( function() {
     var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     if (iOS) {
       window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+      window.close();
     } else {
       window.close();
     }
   }
-
 });
+
+// Mettre à jour les bouttons monter et descendre
+function updateBtn () {
+  $('.move-up').removeClass("hide");
+  $('.move-down').removeClass("hide");
+  $('.move-up').first().addClass("hide");
+  $('.move-down').last().addClass("hide");
+}
+
+// Mettre à jour le fichier photoArray.
+function updatePhotoArray () {
+  var postUrl= "https://monmagazine.fr/messenger/cloture/update/{{senderid}}/{{eventid}}";
+  var photoArray = []
+  $('.photo-card').each(function(index){
+    photoArray.push($(this).data("id"));
+  });
+  $.post(postUrl, { 'photoArray[]': photoArray }, function(){
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Les modifications ont bien été enregistrées !");
+  })
+  .fail(function() {
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Une erreur est survenu... les modifications ne seront pas enregistrées.");
+  });
+}
+function cloturePub () {
+  var photoArray = []
+  $('.photo-card').each(function(index){
+    photoArray.push($(this).data("id"));
+  });
+  $.post("https://monmagazine.fr/messenger/cloture/update/", { 'photoArray[]': photoArray }, function(){
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Les modifications ont bien été enregistrées !");
+  })
+  .fail(function() {
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Une erreur est survenu... la publication n'a pas été cloturée.");
+  });
+}
+
+$('#save-btn').click( function() {
+  updatePhotoArray();
+});
+
+$('#close-btn').click( function() {
+  cloturePub();
+});
+
+$(".close-modal").on("click", function() {
+  $(this).closest('.modal').removeClass('active');
+});
+
+$(".move-up").on("click", function() {
+  $(this).closest('.photo-card').insertBefore($(this).closest('.photo-card').prev());
+  updateBtn();
+});
+
+$(".move-down").on("click", function() {
+  $(this).closest('.photo-card').insertAfter($(this).closest('.photo-card').next());
+  updateBtn();
+});
+
+$(".delete-btn").on("click", function() {
+  $(this).closest('.photo-card').remove();
+  updateBtn();
+});
+
 
 </script>

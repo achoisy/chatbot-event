@@ -29,6 +29,10 @@ main {
   line-height: 46px;
 }
 
+.btn-haut {
+  height: 46px;
+}
+
 .image-rotate90l {  /* Orientation=8 */
   transform: rotate(270deg);
 }
