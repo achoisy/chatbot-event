@@ -21,18 +21,23 @@
 
   <div class="row">
     <div class="col s12">
-      {{#if publication.printable}}
       <div class="{{publication._id}}Portrait" style="">
-        {{printButtonPortrait publication}}
+        <a title='MonMagazine.fr' href='http://www.peecho.com/'
+        class='peecho-print-button'
+        data-filetype='pdf'
+        data-width='{{publication.pdfWidth}}'
+        data-height='{{publication.pdfHeight}}'
+        data-pages='{{publication.pageCount}}'
+        data-thumbnail='{{publication.welcome_msg.photo}}'
+        data-locale="fr_FR"
+        data-theme="blue"
+        data-text="IMPRIMER à partir de "
+        data-reference='{{orderId}}'
+        data-title='{{publication.event_info.name}}'
+        data-src=''
+        data-redirect-thankyou='https://monmagazine.fr/messenger/print/thankyou'
+        >PDF book on demand</a>
       </div>
-      <div class="{{publication._id}}Paysage" style="display: none;">
-        {{printButtonPaysage publication}}
-      </div>
-      {{else}}
-      <blockquote>
-        Désolé mais cette publication n'a pas encore été clôturé et ne peut pas étre imprimée.
-      </blockquote>
-      {{/if}}
     </div>
   </div>
 
@@ -168,7 +173,8 @@ $('input[type="radio"]').click(function(){
 });
 
 $(".peecho-print-button").click(function(){
-
+ var orderId = $(this).data('reference');
+ $.post("https://monmagazine.fr/messenger/print/order", { orderid: orderId });
 });
 
 </script>
