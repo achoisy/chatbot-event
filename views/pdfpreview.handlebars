@@ -13,7 +13,25 @@
     //uses source from online(make sure the file has CORS access enabled if used in cross domain)
     var pdf = '{{pdfUrl}}';
 
-    var options = {height: 500, duration: 800};
+    var options = {
+      text: {
+			toggleSound: "Son on/off",
+			previousPage: "Page Précédente",
+			nextPage: "Page Suivante",
+			toggleFullscreen: "Plein écran",
+			zoomIn: "Zoom In",
+			zoomOut: "Zoom Out",
+			singlePageMode: "Mode Page Unique",
+			doublePageMode: "Mode Page Double",
+			downloadPDFFile: "Télécharger magazine",
+			gotoFirstPage: "Première Page",
+			gotoLastPage: "Dernière Page",
+		  },
+      height: 500,
+      duration: 800,
+      pageMode:DFLIP.PAGE_MODE.DOUBLE,
+      allControls: "altPrev,pageNumber,altNext,thumbnail,zoomIn,zoomOut,fullScreen,more,download,pageMode,sound",
+    };
 
     var flipBook = $("#flipbookContainer").flipBook(pdf, options);
 
