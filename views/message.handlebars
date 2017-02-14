@@ -38,6 +38,7 @@ $('#close-btn').click( function() {
     var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     if (iOS) {
       window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+      window.close();
     } else {
       window.close();
     }

@@ -1,29 +1,53 @@
 <div class="container">
   <div class="columns">
-    <form action="https://monmagazine.fr/messenger/contact/" method="post" id=contactform>
+
       <h4>Contactez-nous</h4>
     <!-- form input control -->
-    <div class="form-group">
+    <div class="form-group column col-12">
         <label class="form-label" for="username">Nom</label>
         <input class="form-input" type="text" id="username" placeholder="Nom complet" />
-        <input type="hidden" value= "" name="senderid" />
+        <input type="hidden" value= "NaN" name="senderid" />
     </div>
-    <div class="form-group">
-        <label class="form-label" for="email">Email</label>
-        <input class="form-input" type="text" id="email" placeholder="Nom complet" />
+    <div class="form-group column col-12 emailcheck">
+        <label class="form-label" for="email">Email *</label>
+        <input class="form-input" type="text" id="email" placeholder="mon@email.com" />
+        <p class="form-input-hint hide" id='emailhint'>email non valide</p>
+    </div>
+
+    <div class="form-group column col-12">
+        <label class="form-label" for="sujet">Sujet</label>
+        <input class="form-input" type="text" id="sujet" placeholder="Pourquoi ce message ?" />
     </div>
     <!-- form textarea control -->
-    <div class="form-group">
-        <label class="form-label" for="message">Message</label>
-        <textarea class="form-input" id="message" placeholder="Textarea" rows="3"></textarea>
+    <div class="form-group column col-12">
+        <label class="form-label" for="message">Message *</label>
+        <textarea class="form-input" id="message" placeholder="Votre message ici" rows="5"></textarea>
     </div>
     <!-- form checkbox control -->
-    <div class="form-group">
-      <button class="btn btn-primary" type="submit">Envoyer</button>
+    <div class="form-group column col-12">
+      <button class="btn btn-primary disabled" id="envoyer">Envoyer</button>
       <button class="btn btn-link close-btn" type="reset">Annuler</button>
     </div>
-</form>
+
   </div>
+</div>
+
+<div class="modal modal-save">
+    <div class="modal-overlay"></div>
+    <div class="modal-container" style="margin-right: 10px; margin-left: 10px;">
+        <div class="modal-header">
+            <button class="btn btn-clear float-right close-modal close-btn"></button>
+            <div class="modal-title">Contact</div>
+        </div>
+        <div class="modal-body" style="padding-top: 0px;padding-bottom: 0px;">
+            <div class="content">
+                <p>test</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding-top: 0px;">
+            <button class="btn btn-link close-modal close-btn">fermer</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -43,13 +67,14 @@ window.extAsyncInit = function() {
      var psid = uids.psid;
      $('input[name=senderid]').val(psid);
    }, function error(err) {
- 
+
    });
     }
   };
 </script>
 
 <script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="https://monmagazine.fr/js/mailgun_validator.js"></script>
 
 <script>
 $('.close-btn').click( function() {
@@ -70,4 +95,68 @@ $('.close-btn').click( function() {
     }
   }
 });
+
+$('#envoyer').click( function() {
+  var postUrl= "https://monmagazine.fr/messenger/contact/";
+  var username = $('input[id=username]').val();
+  var email = $('input[id=email]').val();
+  var sujet = $('input[id=sujet]').val();
+  var message = $('textarea[id=message]').val();
+  var senderid = $('input[name=senderid]').val();
+
+  $.post(postUrl,{ 'username':username, 'email':email, 'message':message, 'sujet':sujet, 'senderid': senderid}, function() {
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Merci, nous vous contacterons dans les plus brefs délais.");
+  })
+  .fail(function() {
+    $('.modal-save').addClass("active");
+    $('.modal-save').find("p").text("Oups, une erreur est survenu...");
+  });
+})
+</script>
+
+<script>
+  // document ready
+  $(function() {
+    // capture all enter and do nothing
+    $('#email').keypress(function(e) {
+      $('#emailhint').addClass('hide');
+      $('#envoyer').addClass('disabled');
+
+      if(e.which == 13) {
+        $('#email').trigger('focusout');
+        return false;
+      }
+    });
+    // attach jquery plugin to validate address
+    $('#email').mailgun_validator({
+      api_key: '{{mailgunPubkey}}', // replace this with your Mailgun public API key
+      in_progress: validation_in_progress,
+      success: validation_success,
+      error: validation_error,
+    });
+  });
+  // while the lookup is performing
+  function validation_in_progress() {
+    $('#emailhint').addClass('hide');
+    $('.emailcheck').addClass('loading');
+  }
+  // if email successfull validated
+  function validation_success(data) {
+    $('.emailcheck').removeClass('loading');
+    $('#emailhint').text('Email valide');
+    $('#emailhint').removeClass('hide');
+    $('input[id=email]').removeClass('is-danger');
+    $('input[id=email]').addClass('is-success');
+    $('#envoyer').removeClass('disabled');
+  }
+  // if email is invalid
+  function validation_error(error_message) {
+    $('.emailcheck').removeClass('loading');
+    $('#emailhint').text('Email non valide');
+    $('#emailhint').removeClass('hide');
+    $('input[id=email]').removeClass('is-success');
+    $('input[id=email]').addClass('is-danger');
+    $('#envoyer').addClass('disabled');
+  }
 </script>
