@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="columns">
+    <form action="https://monmagazine.fr/messenger/contact/" method="post" id=contactform>
+      <h4>Contactez-nous</h4>
+    <!-- form input control -->
+    <div class="form-group">
+        <label class="form-label" for="username">Nom</label>
+        <input class="form-input" type="text" id="username" placeholder="Nom complet" />
+        <input type="hidden" value= "" name="senderid" />
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-input" type="text" id="email" placeholder="Nom complet" />
+    </div>
+    <!-- form textarea control -->
+    <div class="form-group">
+        <label class="form-label" for="message">Message</label>
+        <textarea class="form-input" id="message" placeholder="Textarea" rows="3"></textarea>
+    </div>
+    <!-- form checkbox control -->
+    <div class="form-group">
+      <button class="btn btn-primary" type="submit">Envoyer</button>
+      <button class="btn btn-link close-btn" type="reset">Annuler</button>
+    </div>
+</form>
+  </div>
+</div>
+
+<script>
+(function(d, s, id){
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'Messenger'));
+
+window.extAsyncInit = function() {
+    // the Messenger Extensions JS SDK is done loading
+    var isSupported = MessengerExtensions.isInExtension();
+    if (isSupported) {
+      MessengerExtensions.getUserID(function success(uids) {
+     var psid = uids.psid;
+     $('input[name=senderid]').val(psid);
+   }, function error(err) {
+ 
+   });
+    }
+  };
+</script>
+
+<script type="text/javascript" src="https://monmagazine.fr/js/jquery-3.1.1.min.js"></script>
+
+<script>
+$('.close-btn').click( function() {
+  var isSupported = MessengerExtensions.isInExtension();
+
+  if (isSupported) {
+    MessengerExtensions.requestCloseBrowser(function success() {
+  	}, function error(err) {
+      window.close();
+  	});
+  } else {
+    var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (iOS) {
+      window.location.href = "https://www.messenger.com/closeWindow/?image_url=IMAGE_URL&display_text=FERMETURE";
+      window.close();
+    } else {
+      window.close();
+    }
+  }
+});
+</script>
