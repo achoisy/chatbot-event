@@ -156,13 +156,13 @@ function cloturePub () {
   $('.photo-card').each(function(index){
     photoArray.push($(this).data("id"));
   });
-  $.post(postUrl, { 'photoArray[]': photoArray }, function(){
+  $.post(postUrl, { 'photoArray[]': photoArray }, function(message){
     $('.modal-save').addClass("active");
-    $('.modal-save').find("p").text("Felicitation, votre Publication est cloturée!");
+    $('.modal-save').find("p").text(message);
   })
-  .fail(function() {
+  .fail(function(message) {
     $('.modal-save').addClass("active");
-    $('.modal-save').find("p").text("Une erreur est survenu... la publication n'a pas été cloturée.");
+    $('.modal-save').find("p").text(message);
   });
 }
 
