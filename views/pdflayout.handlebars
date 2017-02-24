@@ -3,7 +3,7 @@
   <div class="insider-top">
     <img src="{{mainUrl}}images/cover/logo-MonMagazine-fr-print.png" class="img-responsive" />
   </div>
-  <img src="{{mainUrl}}full_image/{{this.cover_public_id}}" class="img-responsive" />
+  <img src="{{mainUrl}}full_image/cover/{{this.cover_public_id}}" class="img-responsive" />
   <div class="insider-bottom text-center" style="padding-top: 15px;padding-bottom: 15px;">
     <h4 class=""style="margin-top: 0px;">{{this.printTitle}}</h4>
     <p style="margin-bottom: 0px;"> {{this.description}} </p>
@@ -11,21 +11,28 @@
 </div>
 
   {{#each this.photoList }}
-  <div class="image-print" style="page-break-after:always;">
-    <img src="{{../mainUrl}}full_image/{{this.public_id}}" class="img-responsive"/>
-    <div class="insider-bottom container" style="padding-top: 0;">
-      <div class="columns col-gapless">
-        <div class="column col-2 text-right">
-          <figure class="avatar avatar-xl" style="margin-right: 20px;">
-            <img src="{{../mainUrl}}profile_image/{{this.author_pic}}" />
-          </figure>
-        </div>
-        <div class="column col-9" style="padding-top: 20px;">
-          <p style="margin-bottom: 0px;"> {{this.message}} </p>
-          <cite>- {{this.user_profile.first_name}} {{this.user_profile.last_name}}, le {{this.dateTimeHumain}}</cite>
-        </div>
+  <div class="page" style="page-break-after:always;">
+    <div class="container-img">
+      {{#if this.upPage.landscape}}
+      <img src="{{../mainUrl}}full_image/landscape/{{this.upPage.public_id}}" class="img-responsive"/>
+      {{else}}
+      <img src="{{../mainUrl}}full_image/portrait/{{this.upPage.public_id}}" class="img-responsive"/>
+      {{/if}}
+      <div class="caption">
+        <p style="margin-bottom: 0px;"> {{this.upPage.message}} </p>
+        <cite>- {{this.upPage.user_profile.first_name}} {{this.upPage.user_profile.last_name}}, le {{this.upPage.dateTimeHumain}}</cite>
       </div>
     </div>
+
+    {{#if this.downPage}}
+    <div class="container-img">
+      <img src="{{../mainUrl}}full_image/landscape/{{this.downPage.public_id}}" class="img-responsive"/>
+      <div class="caption">
+        <p style="margin-bottom: 0px;"> {{this.downPage.message}} </p>
+        <cite>- {{this.downPage.user_profile.first_name}} {{this.downPage.user_profile.last_name}}, le {{this.downPage.dateTimeHumain}}</cite>
+      </div>
+    </div>
+    {{/if}}
   </div>
   {{/each}}
 
