@@ -34,7 +34,5 @@ const eventSchema = new Schema({
   valide_attach: [Schema.Types.ObjectId],
   not_valide_attach: [Schema.Types.ObjectId],
 });
-// eventSchema.plugin(mongoosastic);
-eventSchema.index({ 'event_info.name': 'text' });
 
 module.exports = mongoose.model('Event', eventSchema);
