@@ -46,7 +46,7 @@
 <div id="modalinfo" class="modal">
   <div class="modal-content">
     <h4>Image non valide</h4>
-    <p>L'image doit être d'au moins 5 Mpx (mégapixels).</p>
+    <p>L'image doit être d'au moins 5 Mpx (mégapixels). </p>
   </div>
   <div class="modal-footer">
     <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Ok</a>
@@ -92,14 +92,17 @@ $("#fileUpload").on('change', function () {
             reader.onload = function (e) {
               img.prop("src", e.target.result);
               img.prop("class", "responsive-img" );
+              img.prop("id", "myImg")
               img.src = img.prop("src");
               img.appendTo(image_holder);
               EXIF.getData(img, function() {
                 var allMetaData = EXIF.getAllTags(this);
                 console.log(EXIF.pretty(img));
                 var imagePixelSize = 0;
-                imagePixelSize = Number(allMetaData.ImageWidth) * Number(allMetaData.ImageHeight);
-
+                var imageWidth = document.getElementById("myImg").naturalWidth;
+                var imageHeight = document.getElementById("myImg").naturalWidth;
+                imagePixelSize = imageWidth * imageHeight;
+                console.log('image pixels:', imagePixelSize);
                 if (imagePixelSize >= 5000000) {
                   if (allMetaData.Orientation == 8) {
                     img.addClass('image-rotate90l')
