@@ -64,7 +64,7 @@ main {
    bottom: 0;
    left: 0;
    width: 100%;
-   background-color: whitesmoke;
+   background-color: rgba(245, 245, 245, 0.43);
    padding-top: 20px;
 }
 .insider-top {
@@ -81,6 +81,8 @@ main {
 }
 .container-img {
   position: relative;
+  margin-bottom: 10px;
+  margin-top: 10px;
   width: 100%;
 }
 
@@ -88,4 +90,8 @@ main {
     position: absolute;
     bottom: 0;
     left: 0;
+}
+
+.page-center {
+  margin-top: 70vh;
 }
