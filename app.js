@@ -52,5 +52,12 @@ app.listen(2368, () => {
   console.log('App listening on port 2368!');
 });
 
+process.on('SIGINT', () => {
+  mongoose.connection.close();
+  setTimeout(() => {
+   // 300ms later the process kill it self to allow a restart
+    process.exit(0);
+  }, 300);
+});
 // expose app
 exports = module.exports = app;
