@@ -46,7 +46,7 @@
 <div id="modalinfo" class="modal">
   <div class="modal-content">
     <h4>Image non valide</h4>
-    <p>L'image ne semble pas etre d'origine</p>
+    <p>L'image doit être d'au moins 5 Mpx (mégapixels).</p>
   </div>
   <div class="modal-footer">
     <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Ok</a>
@@ -96,8 +96,11 @@ $("#fileUpload").on('change', function () {
               img.appendTo(image_holder);
               EXIF.getData(img, function() {
                 var allMetaData = EXIF.getAllTags(this);
-                 console.log(EXIF.pretty(img));
-                if (allMetaData.DateTimeOriginal) {
+                console.log(EXIF.pretty(img));
+                var imagePixelSize = 0;
+                imagePixelSize = Number(allMetaData.ImageWidth) * Number(allMetaData.ImageHeight);
+
+                if (imagePixelSize >= 5000000) {
                   if (allMetaData.Orientation == 8) {
                     img.addClass('image-rotate90l')
                   } else if (allMetaData.Orientation == 6) {
