@@ -95,3 +95,7 @@ main {
 .page-center {
   margin-top: 70vh;
 }
+
+.img-crop {
+  width: 100%;
+}

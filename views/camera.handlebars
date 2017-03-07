@@ -1,46 +1,60 @@
-<main class="valign-wrapper">
-    <div class="row section valign">
-        <form id="upload-form" action="https://monmagazine.fr/messenger/uploads/" method="post" >
-            <input type="hidden" value= {{eventid}} name="eventid" />
-            <input type="hidden" value= {{senderid}} name="senderid" />
-            <input type="hidden" value='' name="usermessage" />
-            <input type="hidden" value='' name="uploadresult" />
+<main class="">
+  <div id="image-holder" class="container" style="height: 60vh;margin-top: 18px;">
+      <div>
+          <img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />
+      </div>
+  </div>
 
-            <div class="col s12 m10 offset-m1">
-                <div id="image-holder">
-                    <img src="https://monmagazine.fr/images/square/add_photo.png" class="responsive-img" />
-                </div>
-            </div>
-    </div>
+  <form id="upload-form" action="https://monmagazine.fr/messenger/uploads/" method="post" >
+      <input type="hidden" value= {{eventid}} name="eventid" />
+      <input type="hidden" value= {{senderid}} name="senderid" />
+      <input type="hidden" value='' name="usermessage" />
+      <input type="hidden" value='' name="uploadresult" />
+
 </main>
 
-<footer class="">
-    <div class="row">
-        <div class="input-field col s12">
+<footer class="container">
+    <div class="columns">
+        <div class="input-field column col-xs-12">
             <textarea id="message" class="materialize-textarea" length="240"></textarea>
             <label for="message">Texte de publication:</label>
         </div>
     </div>
-    <div class="row file-field input-field" style="margin-bottom: 4px; margin-top: 4px;">
-        <div class="col s5">
-            <div class="btn waves-effect waves-light light-blue darken-4 btn-fullblock">
+    <div class="columns file-field input-field" style="margin-bottom: 4px; margin-top: 4px;">
+        <div class="column col-xs-5">
+            <div class="btn btn-primary btn-fullblock">
                 <span>Selection</span>
                 <input id="fileUpload" type="file" name="file" accept="image/*">
             </div>
         </div>
-        <div class="col s7">
-            <a id="send-btn" class="btn waves-effect waves-light light-blue darken-4 btn-fullblock disabled" name="action">Envoyer
+        <div class="column col-xs-7">
+            <a id="send-btn" class="btn btn-primary btn-fullblock disabled" name="action">Envoyer
                         <i class="material-icons right">send</i>
                       </a>
         </div>
     </div>
-    <div class="progress" style="margin-top: 0px; margin-bottom: 0px; height: 10px;">
-        <div id="progressbar" class="determinate" style="width: 0%"></div>
+    <div class="bar">
+        <div id="progressbar" class="bar-item" role="progressbar" style="width: 0%"></div>
     </div>
+  </form>
 </footer>
-</form>
 
 
+<!-- Modal Structure -->
+<div id="modalmesssage" class="modal">
+  <div class="modal-content">
+    <h4>Commentaire</h4>
+    <div class="form-group">
+      <label class="form-label" for="message">Un petit mot avec cette photo</label>
+      <textarea class="form-input" id="message" placeholder="Textarea" rows="3"></textarea>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+      <button class="btn btn-link modal-close">Annuler</button>
+      <button class="btn btn-primary modal-send">Envoyer</button>
+    </div>
+</div>
 
 <!-- Modal Structure -->
 <div id="modalinfo" class="modal">
@@ -49,7 +63,7 @@
     <p>L'image doit être d'au moins 5 Mpx (mégapixels). </p>
   </div>
   <div class="modal-footer">
-    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Ok</a>
+    <button class="btn btn-link modal-cancel">Ok</button>
   </div>
 </div>
 
@@ -72,8 +86,10 @@
 <script src="https://monmagazine.fr/js/blueimp-file-upload/js/jquery.fileupload-process.js"            type="text/javascript"></script>
 <script src="https://monmagazine.fr/js/blueimp-file-upload/js/jquery.fileupload-image.js"              type="text/javascript"></script>
 <script src="https://monmagazine.fr/js/cloudinary-jquery-file-upload/cloudinary-jquery-file-upload.js" type="text/javascript"></script>
-<script src="https://monmagazine.fr/js/exif.js"                                                 type="text/javascript"></script>
+<script src="https://monmagazine.fr/js/exif.js"                                                        type="text/javascript"></script>
 <script src="https://monmagazine.fr/js/materialize.min.js"                                             type="text/javascript"></script>
+<script src="https://monmagazine.fr/js/cropper.js"                                                     type="text/javascript"></script>
+
 <script>
 
 $( "#image-holder" ).click( function() {
@@ -91,7 +107,7 @@ $("#fileUpload").on('change', function () {
             var reader = new FileReader();
             reader.onload = function (e) {
               img.prop("src", e.target.result);
-              img.prop("class", "responsive-img" );
+              img.prop("class", "img-crop" );
               img.prop("id", "myImg")
               img.src = img.prop("src");
               img.appendTo(image_holder);
@@ -99,17 +115,95 @@ $("#fileUpload").on('change', function () {
                 var allMetaData = EXIF.getAllTags(this);
                 console.log(EXIF.pretty(img));
                 var imagePixelSize = 0;
-                var imageWidth = document.getElementById("myImg").naturalWidth;
-                var imageHeight = document.getElementById("myImg").naturalWidth;
-                imagePixelSize = imageWidth * imageHeight;
+                var image = document.getElementById("myImg");
+                imagePixelSize = image.naturalWidth * image.naturalHeight;
                 console.log('image pixels:', imagePixelSize);
+                console.log('image height:',image.naturalHeight );
+                console.log('image Width:',image.naturalWidth );
                 if (imagePixelSize >= 5000000) {
-                  if (allMetaData.Orientation == 8) {
-                    img.addClass('image-rotate90l')
-                  } else if (allMetaData.Orientation == 6) {
-                    img.addClass('image-rotate90r')
-                  } else if (allMetaData.Orientation == 3) {
-                    img.addClass('image-rotate180')
+                  if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
+                    if (image.naturalWidth < image.naturalHeight) {
+                      var cropper = new Cropper(image, {
+                        viewMode: 1,
+                        aspectRatio: 1.5,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        modal: true,
+                        guides: false,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                        zoomable: true,
+                        rotatable: true,
+                        scalable: true
+                      });
+                      var containerSize = cropper.getContainerData();
+                      cropper.setCanvasData({width: containerSize.width});
+                      cropper.setCropBoxData({width: containerSize.width});
+                    } else {
+                      var cropper = new Cropper(image, {
+                        viewMode: 1,
+                        aspectRatio: 0.75,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: true,
+                        modal: true,
+                        guides: false,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                        zoomable: true,
+                        rotatable: true,
+                        scalable: true,
+                        ready: function () {
+                          var cropper = this.cropper;
+                          var containerData = cropper.getContainerData();
+                          cropper.setCanvasData({width: (containerData.width * 0.8), left: (containerData.width * 0.2 / 2)});
+                          cropper.setCropBoxData({width: (containerData.width * 0.8) });
+                        }
+                      });
+
+                    }
+                  } else {
+                    if (image.naturalWidth > image.naturalHeight) {
+                      var cropper = new Cropper(image, {
+                        viewMode: 1,
+                        aspectRatio: 1.5,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        modal: true,
+                        guides: false,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                        zoomable: false,
+                        rotatable: true,
+                        scalable: true
+                      });
+
+                    } else {
+                      var cropper = new Cropper(image, {
+                        viewMode: 1,
+                        aspectRatio: 0.75,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        modal: true,
+                        guides: false,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                        zoomable: false,
+                        rotatable: true,
+                        scalable: true
+                      });
+                    }
                   }
                   $('#send-btn').removeClass("disabled");
                 } else {
