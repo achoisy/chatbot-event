@@ -22,7 +22,7 @@ const attachSchema = new Schema({
     gender: String,
   },
   message: { type: String, maxlength: 240 },
-  public_id: { type: String },
+  public_id: { type: String, index: true },
   version: Number,
   signature: String,
   width: Number,
@@ -37,6 +37,7 @@ const attachSchema = new Schema({
   make: String,
   orientation: String,
   meta: {},
+  transformation: [],
 });
 
 // attachSchema.plugin(mongoosastic);
