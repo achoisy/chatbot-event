@@ -95,7 +95,7 @@
 <script>
 function transforme(cropper) {
   var crop = cropper.getData(true);
-  return JSON.stringify({ x : crop.x, y : crop.y, width : crop.width, height : crop.height });
+  return JSON.stringify({ x : crop.x, y : crop.y, width : crop.width, height : crop.height, crop: "crop" });
 }
 $("#image-holder").on("click", function() {
   $( "#fileUpload" ).click();
@@ -146,7 +146,7 @@ $("#fileUpload").on('change', function () {
                         cropBoxMovable: false,
                         cropBoxResizable: false,
                         toggleDragModeOnDblclick: false,
-                        zoomable: true,
+                        zoomable: false,
                         rotatable: true,
                         scalable: true
                       });
@@ -166,7 +166,7 @@ $("#fileUpload").on('change', function () {
                         cropBoxMovable: false,
                         cropBoxResizable: false,
                         toggleDragModeOnDblclick: false,
-                        zoomable: true,
+                        zoomable: false,
                         rotatable: true,
                         scalable: true,
                         ready: function () {
