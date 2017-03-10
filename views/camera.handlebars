@@ -255,6 +255,7 @@ $(function () {
           $('#modalmesssage').modal('open');
         });
         $("button[name='action']").click(function () {
+          $('#modalmesssage').modal('close');
           $('.btn').addClass('disabled');
           $('.input-field').addClass('disabled');
         	data.submit();
