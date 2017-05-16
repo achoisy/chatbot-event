@@ -61,7 +61,7 @@
       <div class="modal-title">Image non valide</div>
     </div>
     <div class="modal-body">
-      <p>L'image doit être d'au moins 5 Mpx (mégapixels). </p>
+      <p>L'image doit être d'au moins 3 Mpx (mégapixels). </p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-link modal-cancel">Ok</button>
@@ -131,7 +131,7 @@ $("#fileUpload").on('change', function () {
                 console.log('image pixels:', imagePixelSize);
                 console.log('image height:',image.naturalHeight );
                 console.log('image Width:',image.naturalWidth );
-                if (imagePixelSize >= 5000000) {
+                if (imagePixelSize >= 3000000) {
                   if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
                     if (image.naturalWidth < image.naturalHeight) {
                       cropper = new Cropper(image, {
