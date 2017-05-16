@@ -58,13 +58,13 @@
   <div class="modal-overlay"></div>
   <div class="modal-container">
     <div class="modal-header">
-      <div class="modal-title">Image non valide</div>
+      <div class="modal-title">Conseil</div>
     </div>
     <div class="modal-body">
-      <p>L'image doit être d'au moins 3 Mpx (mégapixels). </p>
+      <p>Pour une impression de qualité, utilisez des images d'au moins 5 Mpx (mégapixels). </p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-link modal-cancel">Ok</button>
+      <button class="btn btn-link modal-close">Ok</button>
     </div>
   </div>
 </div>
@@ -131,102 +131,101 @@ $("#fileUpload").on('change', function () {
                 console.log('image pixels:', imagePixelSize);
                 console.log('image height:',image.naturalHeight );
                 console.log('image Width:',image.naturalWidth );
-                if (imagePixelSize >= 3000000) {
-                  if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
-                    if (image.naturalWidth < image.naturalHeight) {
-                      cropper = new Cropper(image, {
-                        viewMode: 1,
-                        aspectRatio: 1.5,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        restore: false,
-                        modal: true,
-                        guides: false,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                        zoomable: false,
-                        rotatable: true,
-                        scalable: true
-                      });
-                      var containerSize = cropper.getContainerData();
-                      cropper.setCanvasData({width: containerSize.width});
-                      cropper.setCropBoxData({width: containerSize.width});
-                    } else {
-                      cropper = new Cropper(image, {
-                        viewMode: 1,
-                        aspectRatio: 0.75,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        restore: true,
-                        modal: true,
-                        guides: false,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                        zoomable: false,
-                        rotatable: true,
-                        scalable: true,
-                        ready: function () {
-                          var cropper = this.cropper;
-                          var containerData = cropper.getContainerData();
-                          cropper.setCanvasData({width: (containerData.width * 0.8), left: (containerData.width * 0.2 / 2)});
-                          cropper.setCropBoxData({width: (containerData.width * 0.8) });
-                        }
-                      });
-                    }
-                  } else {
-                    if (image.naturalWidth > image.naturalHeight) {
-                      cropper = new Cropper(image, {
-                        viewMode: 1,
-                        aspectRatio: 1.5,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        restore: false,
-                        modal: true,
-                        guides: false,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                        zoomable: false,
-                        rotatable: true,
-                        scalable: true
-                      });
-
-                    } else {
-                      cropper = new Cropper(image, {
-                        viewMode: 1,
-                        aspectRatio: 0.75,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        restore: false,
-                        modal: true,
-                        guides: false,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                        zoomable: false,
-                        rotatable: true,
-                        scalable: true
-                      });
-                    }
-                  }
-                  image.addEventListener('ready', function () {
-                    $('input[name=transformation]').val(transforme(cropper));
-                  });
-                  image.addEventListener('cropend', function () {
-                    $('input[name=transformation]').val(transforme(cropper));
-                  });
-
-                  $('#send-btn').removeClass("disabled");
-                } else {
-                  $('#send-btn').addClass('disabled');
+                if (imagePixelSize < 5000000) {
                   $('#modalinfo').modal('open');
                 }
+                if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
+                  if (image.naturalWidth < image.naturalHeight) {
+                    cropper = new Cropper(image, {
+                      viewMode: 1,
+                      aspectRatio: 1.5,
+                      dragMode: 'move',
+                      autoCropArea: 1,
+                      restore: false,
+                      modal: true,
+                      guides: false,
+                      highlight: false,
+                      cropBoxMovable: false,
+                      cropBoxResizable: false,
+                      toggleDragModeOnDblclick: false,
+                      zoomable: false,
+                      rotatable: true,
+                      scalable: true
+                    });
+                    var containerSize = cropper.getContainerData();
+                    cropper.setCanvasData({width: containerSize.width});
+                    cropper.setCropBoxData({width: containerSize.width});
+                  } else {
+                    cropper = new Cropper(image, {
+                      viewMode: 1,
+                      aspectRatio: 0.75,
+                      dragMode: 'move',
+                      autoCropArea: 1,
+                      restore: true,
+                      modal: true,
+                      guides: false,
+                      highlight: false,
+                      cropBoxMovable: false,
+                      cropBoxResizable: false,
+                      toggleDragModeOnDblclick: false,
+                      zoomable: false,
+                      rotatable: true,
+                      scalable: true,
+                      ready: function () {
+                        var cropper = this.cropper;
+                        var containerData = cropper.getContainerData();
+                        cropper.setCanvasData({width: (containerData.width * 0.8), left: (containerData.width * 0.2 / 2)});
+                        cropper.setCropBoxData({width: (containerData.width * 0.8) });
+                      }
+                    });
+                  }
+                } else {
+                  if (image.naturalWidth > image.naturalHeight) {
+                    cropper = new Cropper(image, {
+                      viewMode: 1,
+                      aspectRatio: 1.5,
+                      dragMode: 'move',
+                      autoCropArea: 1,
+                      restore: false,
+                      modal: true,
+                      guides: false,
+                      highlight: false,
+                      cropBoxMovable: false,
+                      cropBoxResizable: false,
+                      toggleDragModeOnDblclick: false,
+                      zoomable: false,
+                      rotatable: true,
+                      scalable: true
+                    });
+
+                  } else {
+                    cropper = new Cropper(image, {
+                      viewMode: 1,
+                      aspectRatio: 0.75,
+                      dragMode: 'move',
+                      autoCropArea: 1,
+                      restore: false,
+                      modal: true,
+                      guides: false,
+                      highlight: false,
+                      cropBoxMovable: false,
+                      cropBoxResizable: false,
+                      toggleDragModeOnDblclick: false,
+                      zoomable: false,
+                      rotatable: true,
+                      scalable: true
+                    });
+                  }
+                }
+                image.addEventListener('ready', function () {
+                  $('input[name=transformation]').val(transforme(cropper));
+                });
+                image.addEventListener('cropend', function () {
+                  $('input[name=transformation]').val(transforme(cropper));
+                });
+
+                $('#send-btn').removeClass("disabled");
+
               });
             }
             image_holder.show();
