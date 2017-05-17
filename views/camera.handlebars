@@ -127,17 +127,40 @@ $("#fileUpload").on('change', function () {
                 console.log(EXIF.pretty(img));
                 var imagePixelSize = 0;
                 image = document.getElementById("myImg");
-                imagePixelSize = image.naturalWidth * image.naturalHeight;
+                imagePixelSize = allMetaData.ImageWidth * allMetaData.ImageHeight;
                 console.log('image pixels:', imagePixelSize);
-                console.log('image height:',image.naturalHeight );
-                console.log('image Width:',image.naturalWidth );
+                console.log('image height:',allMetaData.ImageHeight );
+                console.log('image Width:',allMetaData.ImageWidth );
                 if (imagePixelSize < 5000000) {
                   $('#modalinfo').modal('open');
                 }
-                if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
-                  if (image.naturalWidth < image.naturalHeight) {
+                cropper = new Cropper(image, {
+                  viewMode: 2,
+                  dragMode: 'move',
+                  autoCropArea: 1,
+                  restore: false,
+                  modal: true,
+                  guides: false,
+                  highlight: false,
+                  cropBoxMovable: false,
+                  cropBoxResizable: false,
+                  toggleDragModeOnDblclick: false,
+                  zoomable: false,
+                  rotatable: true,
+                  scalable: true,
+                  movable: false,
+                  ready: function () {
+                    var cropper = this.cropper;
+                    var containerData = cropper.getContainerData();
+                    //cropper.setCanvasData({width: (containerData.width * 0.8), left: (containerData.width * 0.2 / 2)});
+                  //  cropper.setCropBoxData({width: containerData.width });
+                    cropper.clear();
+                  }
+                });
+                /*if (allMetaData.Orientation == 8 || allMetaData.Orientation == 6) {
+                  if (allMetaData.ImageWidth < allMetaData.ImageHeight) {
                     cropper = new Cropper(image, {
-                      viewMode: 1,
+                      viewMode: 0,
                       aspectRatio: 1.5,
                       dragMode: 'move',
                       autoCropArea: 1,
@@ -157,7 +180,7 @@ $("#fileUpload").on('change', function () {
                     cropper.setCropBoxData({width: containerSize.width});
                   } else {
                     cropper = new Cropper(image, {
-                      viewMode: 1,
+                      viewMode: 0,
                       aspectRatio: 0.75,
                       dragMode: 'move',
                       autoCropArea: 1,
@@ -180,9 +203,9 @@ $("#fileUpload").on('change', function () {
                     });
                   }
                 } else {
-                  if (image.naturalWidth > image.naturalHeight) {
+                  if (allMetaData.ImageWidth > allMetaData.ImageHeight) {
                     cropper = new Cropper(image, {
-                      viewMode: 1,
+                      viewMode: 0,
                       aspectRatio: 1.5,
                       dragMode: 'move',
                       autoCropArea: 1,
@@ -200,7 +223,7 @@ $("#fileUpload").on('change', function () {
 
                   } else {
                     cropper = new Cropper(image, {
-                      viewMode: 1,
+                      viewMode: 0,
                       aspectRatio: 0.75,
                       dragMode: 'move',
                       autoCropArea: 1,
@@ -216,13 +239,13 @@ $("#fileUpload").on('change', function () {
                       scalable: true
                     });
                   }
-                }
-                image.addEventListener('ready', function () {
+                }*/
+                /*image.addEventListener('ready', function () {
                   $('input[name=transformation]').val(transforme(cropper));
                 });
                 image.addEventListener('cropend', function () {
                   $('input[name=transformation]').val(transforme(cropper));
-                });
+                });*/
 
                 $('#send-btn').removeClass("disabled");
 
