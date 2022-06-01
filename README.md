@@ -40,3 +40,6 @@ Code formating:
 Infra:
  - PM2 process manager
  - Nginx web server
+
+Printing service:
+ - Peecho
