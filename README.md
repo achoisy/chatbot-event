@@ -38,4 +38,5 @@ Code formating:
   - Airbnb JavaScript Style
 
 Infra:
-  - PM2 process manager
+ - PM2 process manager
+ - Nginx web server
